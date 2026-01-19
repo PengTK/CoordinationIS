@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>COORDIS — Разработка на заказ</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+
+<header>
+    <div th:if="${email != null}" class="auth-buttons">
+        <h3>Привет, <span th:text="${firstName}">Пользователь</span>!</h3>
+        <h3>Роль: <span th:text="${role}">Гость</span></h3>
+        <form method="post" action="auth/logout">
+            <button type="submit">Выйти</button>
+        </form>
+    </div>
+
+    <div th:if="${email == null}" class="auth-buttons">
+        <a href="auth">Вход</a> |
+        <a href="reg">Регистрация</a>
+    </div>
+</header>
+
+<main>
+    <h1>COORDIS</h1>
+    <p class="subtitle">Брутальная разработка. Чёткие дедлайны. Надёжные решения.</p>
+    <a href="projects" class="cta-button">Заказать проект</a>
+</main>
+
+<footer>
+    &copy; 2026 COORDIS. Все права защищены.
+</footer>
+
+</body>
+</html>

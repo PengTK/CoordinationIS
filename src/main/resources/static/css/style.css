@@ -1,0 +1,183 @@
+* {
+margin: 0;
+padding: 0;
+box-sizing: border-box;
+}
+
+body {
+background-color: #0a0a0a;
+color: #e0e0e0;
+font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+line-height: 1.6;
+}
+
+/* Шапка с кнопками авторизации/регистрации */
+header {
+display: flex;
+justify-content: flex-end;
+align-items: center;
+padding: 1.2rem 2rem;
+background-color: #111;
+border-bottom: 1px solid #222;
+}
+
+.auth-buttons a {
+text-decoration: none;
+color: #ccc;
+background-color: #222;
+padding: 0.5rem 1rem;
+margin-left: 0.75rem;
+border-radius: 4px;
+transition: background-color 0.3s, color 0.3s;
+font-weight: 600;
+font-size: 0.95rem;
+}
+
+.auth-buttons a:hover {
+background-color: #333;
+color: #fff;
+}
+
+/* Основной контент */
+main {
+max-width: 1200px;
+margin: 4rem auto;
+padding: 0 2rem;
+text-align: center;
+}
+
+h1 {
+font-size: 3.5rem;
+margin-bottom: 1.5rem;
+background: linear-gradient(90deg, #8a2be2, #00bfff);
+-webkit-background-clip: text;
+background-clip: text;
+color: transparent;
+font-weight: 800;
+}
+
+.subtitle {
+font-size: 1.25rem;
+color: #aaa;
+margin-bottom: 3rem;
+}
+
+.cta-button {
+display: inline-block;
+padding: 1rem 2.5rem;
+background: linear-gradient(90deg, #1e1e1e, #2a2a2a);
+color: #00f0ff;
+text-decoration: none;
+border: 2px solid #00f0ff;
+border-radius: 6px;
+font-weight: bold;
+font-size: 1.1rem;
+transition: all 0.3s ease;
+margin-top: 1rem;
+}
+
+.cta-button:hover {
+background: linear-gradient(90deg, #2a2a2a, #3a3a3a);
+color: #fff;
+border-color: #00bfff;
+transform: translateY(-2px);
+box-shadow: 0 4px 12px rgba(0, 175, 255, 0.2);
+}
+
+/* Подвал */
+footer {
+text-align: center;
+padding: 2rem;
+color: #666;
+font-size: 0.9rem;
+border-top: 1px solid #222;
+margin-top: 4rem;
+}
+auth-container {
+max-width: 450px;
+margin: 6rem auto;
+padding: 2.5rem;
+background-color: #111;
+border: 1px solid #222;
+border-radius: 8px;
+box-shadow: 0 0 20px rgba(0, 0, 0, 0.6);
+}
+
+.auth-container h2 {
+text-align: center;
+margin-bottom: 1.8rem;
+font-size: 2rem;
+color: #e0e0e0;
+font-weight: 700;
+}
+
+.error-message {
+color: #ff4d4d;
+background-color: #221111;
+padding: 0.75rem;
+border-radius: 4px;
+margin-bottom: 1.5rem;
+border-left: 3px solid #ff3333;
+font-size: 0.95rem;
+}
+
+.form-group {
+margin-bottom: 1.5rem;
+}
+
+.form-group label {
+display: block;
+margin-bottom: 0.5rem;
+color: #ccc;
+font-weight: 500;
+}
+
+.form-group input {
+width: 100%;
+padding: 0.75rem;
+background-color: #1a1a1a;
+border: 1px solid #333;
+border-radius: 4px;
+color: #e0e0e0;
+font-size: 1rem;
+}
+
+.form-group input:focus {
+outline: none;
+border-color: #00bfff;
+box-shadow: 0 0 0 2px rgba(0, 191, 255, 0.2);
+}
+
+.submit-button {
+width: 100%;
+padding: 0.9rem;
+background: linear-gradient(90deg, #1e1e1e, #2a2a2a);
+color: #00f0ff;
+border: 2px solid #00f0ff;
+border-radius: 6px;
+font-weight: bold;
+font-size: 1.05rem;
+cursor: pointer;
+transition: all 0.3s ease;
+}
+
+.submit-button:hover {
+background: linear-gradient(90deg, #2a2a2a, #3a3a3a);
+color: #fff;
+border-color: #00bfff;
+transform: translateY(-2px);
+box-shadow: 0 4px 12px rgba(0, 175, 255, 0.25);
+}
+
+.auth-link {
+display: block;
+text-align: center;
+margin-top: 1.5rem;
+color: #aaa;
+text-decoration: none;
+font-size: 0.95rem;
+}
+
+.auth-link:hover {
+color: #00f0ff;
+}

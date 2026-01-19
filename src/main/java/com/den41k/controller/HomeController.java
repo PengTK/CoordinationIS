@@ -1,0 +1,51 @@
+package com.den41k.controller;
+
+import com.den41k.model.Role;
+import com.den41k.model.User;
+import com.den41k.service.UserService;
+import io.micronaut.http.HttpResponse;
+import io.micronaut.http.annotation.Controller;
+import io.micronaut.http.annotation.Get;
+import io.micronaut.http.annotation.PathVariable;
+import io.micronaut.session.Session;
+import io.micronaut.views.View;
+
+import java.net.URI;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+
+@Controller("/home")
+public class HomeController {
+
+    private final UserService userService;
+
+    public HomeController(UserService userService) {
+        this.userService = userService;
+    }
+
+    @Get("/{path:.+}")
+    public HttpResponse<?> securityHome(@PathVariable String path, Session session) {
+        if (session.get("userId", String.class).isEmpty()) {
+            return HttpResponse.redirect(URI.create("/auth"));
+        }
+        return HttpResponse.ok("User is real");
+    }
+
+    @Get
+    @View("home")
+    public Map<String, Object> showHome(Session session) {
+        Map<String, Object> currentUserModel = new HashMap<>();
+        String email = session.get("email", String.class).orElse(null);
+        if (email != null) {
+            Optional<User> currentUser = userService.findByEmail(email);
+            String firstName = currentUser.get().getName();
+            Role role = currentUser.get().getRole();
+            currentUserModel.put("email", email);
+            currentUserModel.put("firstName", firstName);
+            currentUserModel.put("role", role.getName());
+        }
+
+        return currentUserModel;
+    }
+}
