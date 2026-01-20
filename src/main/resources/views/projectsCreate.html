@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>COORDIS — Регистрация</title>
+    <link rel="stylesheet" th:href="@{/static/css/style.css}">
+</head>
+<body>
+<div class="project-form-container">
+    <h2>Создать проект</h2>
+    <form method="POST" action="/projects/create">
+        <div class="form-group">
+            <label for="title">Название:</label>
+            <input type="text" id="title" name="title" required>
+        </div>
+        <div class="form-group">
+            <label for="description">Описание:</label>
+            <textarea id="description" name="description" required placeholder="Опишите задачу подробно..."></textarea>
+        </div>
+        <div class="form-group">
+            <label for="deadLine">Дедлайн:</label>
+            <input type="date" id="deadLine" name="deadLine">
+        </div>
+        <button type="submit" class="submit-button">Создать проект</button>
+    </form>
+</div>
+</body>
+</html>

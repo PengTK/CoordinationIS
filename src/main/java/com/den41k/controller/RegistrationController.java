@@ -32,7 +32,7 @@ public class RegistrationController {
 
     @Post(consumes = MediaType.APPLICATION_FORM_URLENCODED)
     public HttpResponse<?> register(@Body Map<String, String> formData) {
-        User user = new User(formData.get("name"), formData.get("email"), formData.get("password"));
+        User user = new User(formData.get("name"), formData.get("surname"), formData.get("patronymic"), formData.get("email"), formData.get("password"));
         user.setPassword(BCrypt.hashpw(user.getPassword(), BCrypt.gensalt(15)));
         userService.registerUser(user);
         return HttpResponse.redirect(URI.create("auth"));

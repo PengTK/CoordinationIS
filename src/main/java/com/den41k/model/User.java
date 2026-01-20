@@ -2,6 +2,8 @@ package com.den41k.model;
 
 import jakarta.persistence.*;
 
+import java.time.LocalDateTime;
+
 @Entity
 @Table(name = "users")
 public class User {
@@ -13,6 +15,12 @@ public class User {
     @Column(nullable = false)
     private String name;
 
+    @Column(nullable = false)
+    private String sureName;
+
+    @Column
+    private String patronymic;
+
     @Column(unique = true)
     private String email;
 
@@ -21,6 +29,9 @@ public class User {
 
     @Column(nullable = false)
     private Role role;
+
+    @Column(nullable = false, updatable = false)
+    private LocalDateTime createdAt;
 
     public Long getId() {
         return id;
@@ -36,6 +47,22 @@ public class User {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getSureName() {
+        return sureName;
+    }
+
+    public void setSureName(String sureName) {
+        this.sureName = sureName;
+    }
+
+    public String getPatronymic() {
+        return patronymic;
+    }
+
+    public void setPatronymic(String patronymic) {
+        this.patronymic = patronymic;
     }
 
     public String getEmail() {
@@ -65,11 +92,22 @@ public class User {
     public User() {
     }
 
-    public User(String name, String email, String password) {
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public User(String name, String sureName, String patronymic, String email, String password) {
         this.name = name;
+        this.sureName = sureName;
+        this.patronymic = patronymic;
         this.email = email;
         this.password = password;
         this.role = Role.CUSTOMER;
+        this.createdAt = LocalDateTime.now();
     }
 
     public User(String email, String password) {

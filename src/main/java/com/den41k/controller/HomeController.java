@@ -24,14 +24,6 @@ public class HomeController {
         this.userService = userService;
     }
 
-    @Get("/{path:.+}")
-    public HttpResponse<?> securityHome(@PathVariable String path, Session session) {
-        if (session.get("userId", String.class).isEmpty()) {
-            return HttpResponse.redirect(URI.create("/auth"));
-        }
-        return HttpResponse.ok("User is real");
-    }
-
     @Get
     @View("home")
     public Map<String, Object> showHome(Session session) {

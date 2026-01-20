@@ -13,7 +13,6 @@ public class UserService {
 
     private final UserRepository userRepository;
 
-    // Конструкторное внедрение (без @Autowired!)
     public UserService(UserRepository userRepository) {
         this.userRepository = userRepository;
     }

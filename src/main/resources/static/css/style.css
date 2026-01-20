@@ -14,7 +14,7 @@ line-height: 1.6;
 /* Шапка с кнопками авторизации/регистрации */
 header {
 display: flex;
-justify-content: flex-end;
+justify-content: space-between; /* Лево — право */
 align-items: center;
 padding: 1.2rem 2rem;
 background-color: #111;
@@ -180,4 +180,104 @@ font-size: 0.95rem;
 
 .auth-link:hover {
 color: #00f0ff;
+}
+
+.logo {
+    color: white;
+    text-decoration: none;
+    font-size: 1.5rem;
+    font-weight: bold;
+}
+
+/* Группа правых элементов (если нужно) */
+.nav-right {
+    display: flex;
+    gap: 1rem;
+}
+.nav-right a {
+    color: white;
+    text-decoration: none;
+}
+
+/* === Форма создания проекта === */
+
+.project-form-container {
+    max-width: 600px;
+    margin: 4rem auto;
+    padding: 2.5rem;
+    background-color: #111;
+    border: 1px solid #222;
+    border-radius: 8px;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.6);
+}
+
+.project-form-container h2 {
+    text-align: center;
+    margin-bottom: 1.8rem;
+    font-size: 2rem;
+    color: #e0e0e0;
+    font-weight: 700;
+}
+
+/* Универсальный стиль для всех полей формы */
+.project-form-container .form-group {
+    margin-bottom: 1.5rem;
+    text-align: left;
+}
+
+.project-form-container .form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: #ccc;
+    font-weight: 500;
+}
+
+/* Стиль для input и textarea */
+.project-form-container .form-group input,
+.project-form-container .form-group textarea {
+    width: 100%;
+    padding: 0.75rem;
+    background-color: #1a1a1a;
+    border: 1px solid #333;
+    border-radius: 4px;
+    color: #e0e0e0;
+    font-size: 1rem;
+    box-sizing: border-box;
+}
+
+/* Особый стиль для textarea — больше строк */
+.project-form-container .form-group textarea {
+    min-height: 120px;
+    resize: vertical;
+    padding: 0.8rem;
+}
+
+/* Фокус с неоновым эффектом */
+.project-form-container .form-group input:focus,
+.project-form-container .form-group textarea:focus {
+    outline: none;
+    border-color: #00bfff;
+    box-shadow: 0 0 0 2px rgba(0, 191, 255, 0.2);
+}
+
+/* Кнопка отправки формы */
+.project-form-container .submit-button {
+    width: 100%;
+    padding: 0.9rem;
+    background: linear-gradient(90deg, #1e1e1e, #2a2a2a);
+    color: #00f0ff;
+    border: 2px solid #00f0ff;
+    border-radius: 6px;
+    font-weight: bold;
+    font-size: 1.05rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.project-form-container .submit-button:hover {
+    background: linear-gradient(90deg, #2a2a2a, #3a3a3a);
+    color: #fff;
+    border-color: #00bfff;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 175, 255, 0.25);
 }

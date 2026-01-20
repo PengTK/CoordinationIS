@@ -1,11 +1,9 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>COORDIS — Разработка на заказ</title>
-    <link rel="stylesheet" href="/static/css/style.css">
-</head>
+    <meta charset="UTF-8">
+    <title>COORDIS — Вход</title>
+    <link rel="stylesheet" th:href="@{/static/css/style.css}">
 <body>
 
 <header>
@@ -23,16 +21,14 @@
         <a href="reg">Регистрация</a>
     </div>
 </header>
-
 <main>
-    <h1>COORDIS</h1>
-    <p class="subtitle">Брутальная разработка. Чёткие дедлайны. Надёжные решения.</p>
-    <a href="projects" class="cta-button">Проекты</a>
+<div th:if="${email != null}">
+    <a href="projects/create" class="cta-button">Заказать проект</a>
+</div>
+
+<div th:if="${email == null}" class="error-message">
+    <a>У вас сейчас нет доступа к этому разделу</a>
+</div>
 </main>
-
-<footer>
-    &copy; 2026 COORDIS. Все права защищены.
-</footer>
-
 </body>
 </html>
