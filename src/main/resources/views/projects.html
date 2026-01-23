@@ -24,8 +24,37 @@
 <main>
 <div th:if="${email != null}">
     <a href="projects/create" class="cta-button">Заказать проект</a>
+    <table class="table table-striped">
+        <thead>
+        <tr>
+            <th>ID</th>
+            <th>Название</th>
+            <th>Описание</th>
+            <th>Статус</th>
+            <th>Дедлайн</th>
+            <th>Создатель проекта</th>
+            <th>Дата создания</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="project : ${projects}">
+            <td th:text="${project.title}"></td>
+            <td th:text="${project.description}"></td>
+            <td th:text="${project.projectStatus}"></td>
+            <td th:text="${project.deadLine}"></td>
+            <td th:text="${project.projectCreator.name}"></td>
+            <td th:text="${project.createdAt}"></td>
+            <td>
+                <a th:href="@{/project/{id}(id=${project.id})}">Просмотр</a>
+                <a th:href="@{/project/{id}/edit(id=${project.id})}">Редактировать</a>
+                <form th:action="@{/project/{id}/delete(id=${project.id})}" method="post">
+                    <button type="submit" onclick="return confirm('Удалить проект?')">Удалить</button>
+                </form>
+            </td>
+        </tr>
+        </tbody>
+    </table>
 </div>
-
 <div th:if="${email == null}" class="error-message">
     <a>У вас сейчас нет доступа к этому разделу</a>
 </div>

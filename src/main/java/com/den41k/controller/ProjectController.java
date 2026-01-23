@@ -31,8 +31,20 @@ public class ProjectController {
 
     @Get
     @View("projects")
-    public List<Project> getAllMaterials() {
-        return projectService.getAllProjects();
+    public Map<String, Object> getAllProjects(Session session) {
+        Map<String, Object> currentUserModel = new HashMap<>();
+        String email = session.get("email", String.class).orElse(null);
+        if (email != null) {
+            Optional<User> currentUser = userService.findByEmail(email);
+            String firstName = currentUser.get().getName();
+            Role role = currentUser.get().getRole();
+            currentUserModel.put("email", email);
+            currentUserModel.put("firstName", firstName);
+            currentUserModel.put("role", role.getName());
+            currentUserModel.put("projects", projectService.getAllProjects());
+        }
+
+        return currentUserModel;
     }
 
     @Get("/create")

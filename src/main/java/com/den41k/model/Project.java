@@ -96,4 +96,7 @@ public class Project {
         this.projectCreator = projectCreator;
         this.createdAt = LocalDateTime.now();
     }
+
+    public Project() {
+    }
 }
