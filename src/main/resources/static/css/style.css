@@ -281,3 +281,68 @@ color: #00f0ff;
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(0, 175, 255, 0.25);
 }
+/* === Стили для таблицы проектов === */
+
+.table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 2rem 0;
+    background-color: #111;
+    color: #e0e0e0;
+    font-size: 0.95rem;
+    text-align: left;
+}
+
+.table th,
+.table td {
+    padding: 1rem;
+    border-bottom: 1px solid #222;
+}
+
+.table th {
+    background-color: #1a1a1a;
+    color: #00f0ff;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.table tbody tr:hover {
+    background-color: #1a1a1a;
+    transition: background-color 0.2s;
+}
+
+.table td {
+    color: #ccc;
+}
+
+/* Стили для ссылок действий */
+.table a {
+    color: #00bfff;
+    text-decoration: none;
+    margin-right: 0.75rem;
+    font-weight: 600;
+    transition: color 0.2s;
+}
+
+.table a:hover {
+    color: #00f0ff;
+    text-decoration: underline;
+}
+
+/* Кнопка "Удалить" в таблице */
+.table button[type="submit"] {
+    background: none;
+    border: none;
+    color: #ff4d4d;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.95rem;
+    padding: 0;
+    transition: color 0.2s;
+}
+
+.table button[type="submit"]:hover {
+    color: #ff8080;
+    text-decoration: underline;
+}
