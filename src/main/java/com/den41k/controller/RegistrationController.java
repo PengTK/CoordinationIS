@@ -1,6 +1,10 @@
 package com.den41k.controller;
 
+import com.den41k.model.Role;
+import com.den41k.model.RolePermission;
 import com.den41k.model.User;
+import com.den41k.repository.RoleRepository;
+import com.den41k.service.RoleService;
 import com.den41k.service.UserService;
 import io.micronaut.core.annotation.Nullable;
 import io.micronaut.http.HttpResponse;
@@ -18,9 +22,11 @@ import java.util.Map;
 public class RegistrationController {
 
     private final UserService userService;
+    private final RoleService roleService;
 
-    public RegistrationController(UserService userService) {
+    public RegistrationController(UserService userService, RoleService roleService) {
         this.userService = userService;
+        this.roleService = roleService;
     }
 
     @Get
@@ -32,9 +38,12 @@ public class RegistrationController {
 
     @Post(consumes = MediaType.APPLICATION_FORM_URLENCODED)
     public HttpResponse<?> register(@Body Map<String, String> formData) {
-        User user = new User(formData.get("name"), formData.get("surname"), formData.get("patronymic"), formData.get("email"), formData.get("password"));
-        user.setPassword(BCrypt.hashpw(user.getPassword(), BCrypt.gensalt(15)));
-        userService.registerUser(user);
+        if (roleService.findByName("Администратор")!=null) {
+            Role roleOpt = roleService.findByName("Администратор");
+            User user = new User(formData.get("name"), formData.get("surname"), formData.get("patronymic"), formData.get("email"), formData.get("password"), roleOpt);
+            user.setPassword(BCrypt.hashpw(user.getPassword(), BCrypt.gensalt(15)));
+            userService.registerUser(user);
+        }
         return HttpResponse.redirect(URI.create("auth"));
     }
 

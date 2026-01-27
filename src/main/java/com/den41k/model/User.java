@@ -27,7 +27,8 @@ public class User {
     @Column
     private String password;
 
-    @Column(nullable = false)
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(nullable = false)
     private Role role;
 
     @Column(nullable = false, updatable = false)
@@ -100,13 +101,13 @@ public class User {
         this.createdAt = createdAt;
     }
 
-    public User(String name, String sureName, String patronymic, String email, String password) {
+    public User(String name, String sureName, String patronymic, String email, String password, Role role) {
         this.name = name;
         this.sureName = sureName;
         this.patronymic = patronymic;
         this.email = email;
         this.password = password;
-        this.role = Role.CUSTOMER;
+        this.role = role;
         this.createdAt = LocalDateTime.now();
     }
 

@@ -6,6 +6,21 @@
     <link rel="stylesheet" th:href="@{/static/css/style.css}">
 </head>
 <body>
+<header>
+    <a href="home" class="logo">COORDIS</a>
+    <div th:if="${email != null}" class="auth-buttons, nav-right">
+        <h3>Привет, <span th:text="${firstName}">Пользователь</span>!</h3>
+        <h3>Роль: <span th:text="${role}">Гость</span></h3>
+        <form method="post" action="auth/logout">
+            <button type="submit">Выйти</button>
+        </form>
+    </div>
+
+    <div th:if="${email == null}" class="auth-buttons">
+        <a href="auth">Вход</a> |
+        <a href="reg">Регистрация</a>
+    </div>
+</header>
 <div class="project-form-container">
     <h2>Создать проект</h2>
     <form method="POST" action="/projects/create">

@@ -45,6 +45,7 @@
     <div class="task-create-layout">
         <!-- Левая часть: проект + задачи -->
         <div class="project-preview" style="text-align: left">
+            <h2 th:text="${project.title}">Название проекта</h2>
             <p><strong>Описание:</strong> <span th:text="${project.description}">Описание</span></p>
             <p><strong>Статус:</strong> <span th:text="${project.projectStatus}">Статус</span></p>
             <p><strong>Дедлайн:</strong> <span th:text="${project.deadLine != null ? project.deadLine : '—'}">Дедлайн</span></p>

@@ -5,6 +5,21 @@
     <title>COORDIS — Вход</title>
     <link rel="stylesheet" th:href="@{/static/css/style.css}">
 <body>
+<header>
+    <a href="home" class="logo">COORDIS</a>
+    <div th:if="${email != null}" class="auth-buttons, nav-right">
+        <h3>Привет, <span th:text="${firstName}">Пользователь</span>!</h3>
+        <h3>Роль: <span th:text="${role}">Гость</span></h3>
+        <form method="post" action="auth/logout">
+            <button type="submit">Выйти</button>
+        </form>
+    </div>
+
+    <div th:if="${email == null}" class="auth-buttons">
+        <a href="auth">Вход</a> |
+        <a href="reg">Регистрация</a>
+    </div>
+</header>
 <div class="auth-container">
     <h2>Вход в систему</h2>
 
