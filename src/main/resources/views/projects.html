@@ -47,9 +47,9 @@
                 <td th:text="${project.projectCreator.name}"></td>
                 <td th:text="${project.createdAt}"></td>
                 <td>
-                    <a th:href="@{/project/{id}(id=${project.id})}">Просмотр</a>
-                    <a th:href="@{/project/{id}/edit(id=${project.id})}">Редактировать</a>
-                    <form th:action="@{/project/{id}/delete(id=${project.id})}" method="post" style="display:inline;">
+                    <a th:href="@{/projects/{id}(id=${project.id})}">Просмотр</a>
+                    <a th:href="@{/projects/{id}/edit(id=${project.id})}">Редактировать</a>
+                    <form th:action="@{/projects/{id}/delete(id=${project.id})}" method="post" style="display:inline;">
                         <button type="submit" onclick="return confirm('Удалить проект?')">Удалить</button>
                     </form>
                 </td>

@@ -132,20 +132,33 @@ color: #ccc;
 font-weight: 500;
 }
 
-.form-group input {
-width: 100%;
-padding: 0.75rem;
-background-color: #1a1a1a;
-border: 1px solid #333;
-border-radius: 4px;
-color: #e0e0e0;
-font-size: 1rem;
+/* Универсальный стиль для всех полей формы: input и textarea */
+.form-group input,
+.form-group textarea {
+    width: 100%;
+    padding: 0.75rem;
+    background-color: #1a1a1a;
+    border: 1px solid #333;
+    border-radius: 4px;
+    color: #e0e0e0;
+    font-size: 1rem;
+    box-sizing: border-box;
 }
 
-.form-group input:focus {
-outline: none;
-border-color: #00bfff;
-box-shadow: 0 0 0 2px rgba(0, 191, 255, 0.2);
+/* Особый стиль для textarea — больше высоты и возможность ресайза */
+.form-group textarea {
+    min-height: 100px;       /* Минимальная высота */
+    resize: vertical;         /* Разрешить изменение только по вертикали */
+    padding: 0.8rem;          /* Чуть больше отступ внутри */
+    line-height: 1.5;         /* Улучшенная читаемость */
+}
+
+/* Эффект при фокусе — как у input */
+.form-group input:focus,
+.form-group textarea:focus {
+    outline: none;
+    border-color: #00bfff;
+    box-shadow: 0 0 0 2px rgba(0, 191, 255, 0.2);
 }
 
 .submit-button {
@@ -345,4 +358,31 @@ color: #00f0ff;
 .table button[type="submit"]:hover {
     color: #ff8080;
     text-decoration: underline;
+}
+
+.form-group select {
+    width: 100%;
+    padding: 0.75rem;
+    background-color: #1a1a1a;
+    border: 1px solid #333;
+    border-radius: 4px;
+    color: #e0e0e0;
+    font-size: 1rem;
+    appearance: none; /* Убирает стандартную стрелку (в поддерживаемых браузерах) */
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2300bfff' stroke-width='2'%3e%3cpath d='M6 9l6 6 6-6'/%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    background-size: 16px;
+    padding-right: 2.5rem; /* Чтобы текст не наезжал на стрелку */
+    cursor: pointer;
+}
+
+.form-group select:focus {
+    outline: none;
+    border-color: #00bfff;
+    box-shadow: 0 0 0 2px rgba(0, 191, 255, 0.2);
+}
+
+.form-group select:hover {
+    border-color: #00bfff;
 }

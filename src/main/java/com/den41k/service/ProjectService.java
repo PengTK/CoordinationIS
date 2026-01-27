@@ -1,9 +1,8 @@
 package com.den41k.service;
 
 import com.den41k.model.Project;
-import com.den41k.model.User;
 import com.den41k.repository.ProjectRepository;
-import com.den41k.repository.UserRepository;
+import io.micronaut.core.annotation.NonNull;
 import io.micronaut.transaction.annotation.Transactional;
 import jakarta.inject.Singleton;
 
@@ -27,6 +26,11 @@ public class ProjectService {
     @Transactional
     public List<Project> getAllProjects() {
         return projectRepository.findAll();
+    }
+
+    @Transactional
+    public @NonNull Optional<Project> findById(Long id) {
+        return projectRepository.findById(id);
     }
 
 }

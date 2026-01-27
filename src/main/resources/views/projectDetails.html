@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="'Проект: ' + ${project.title}">COORDIS — Проект</title>
+    <link rel="stylesheet" th:href="@{/static/css/style.css}">
+</head>
+<body>
+<header>
+    <a href="/home" class="logo">COORDIS</a>
+    <div th:if="${email != null}" class="auth-buttons nav-right">
+        <a href="/projects">← Назад к проектам</a>
+    </div>
+</header>
+
+<main style="text-align: left; max-width: 900px; margin: 2rem auto;">
+    <h2 th:text="${project.title}">Название проекта</h2>
+    <p><strong>Описание:</strong> <span th:text="${project.description}">Описание</span></p>
+    <p><strong>Статус:</strong> <span th:text="${project.projectStatus}">Статус</span></p>
+    <p><strong>Дедлайн:</strong> <span th:text="${project.deadLine} ?: '—'">Дедлайн</span></p>
+    <p><strong>Создатель:</strong> <span th:text="${project.projectCreator.name}">Создатель</span></p>
+    <p><strong>Дата создания:</strong> <span th:text="${#temporals.format(project.createdAt, 'dd.MM.yyyy HH:mm')}">Дата</span></p>
+
+    <h3 style="margin-top: 2rem;">Задачи проекта</h3>
+
+    <div th:if="${tasks.empty}">
+        <p>В этом проекте пока нет задач.</p>
+    </div>
+
+    <table class="table" th:unless="${tasks.empty}">
+        <thead>
+        <tr>
+            <th>ID</th>
+            <th>Название</th>
+            <th>Описание</th>
+            <th>Статус</th>
+            <th>Приоритет</th>
+            <th>Исполнитель</th>
+            <th>Дедлайн</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="task : ${tasks}">
+            <td th:text="${task.id}"></td>
+            <td th:text="${task.title}"></td>
+            <td th:text="${task.description}"></td>
+            <td th:text="${task.taskStatus}"></td>
+            <td th:text="${task.priority}"></td>
+            <td th:text="${task.taskExecutor != null ? task.taskExecutor.name : '—'}"></td>
+            <td th:text="${task.deadLine != null ? task.deadLine : '—'}"></td>
+        </tr>
+        </tbody>
+    </table>
+
+    <div style="margin-top: 2rem;">
+        <a th:href="@{/projects/{id}/task/create(id=${project.id})}" class="cta-button">+ Создать задачу</a>
+    </div>
+</main>
+</body>
+</html>

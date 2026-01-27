@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="'Создать задачу — ' + ${project.title}">COORDIS — Создать задачу</title>
+    <link rel="stylesheet" th:href="@{/static/css/style.css}">
+    <style>
+        .task-create-layout {
+            display: flex;
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+        .project-preview {
+            flex: 2;
+            min-width: 300px;
+        }
+        .task-form-panel {
+            flex: 1;
+            background-color: #111;
+            border: 1px solid #222;
+            border-radius: 8px;
+            padding: 1.5rem;
+            max-width: 400px;
+        }
+        @media (max-width: 900px) {
+            .task-create-layout {
+                flex-direction: column;
+            }
+            .task-form-panel {
+                max-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+<header>
+    <a href="/home" class="logo">COORDIS</a>
+    <div th:if="${email != null}" class="auth-buttons nav-right">
+        <a th:href="@{/projects/{id}(id=${project.id})}">← Назад к проекту</a>
+    </div>
+</header>
+
+<main style="max-width: 1200px; margin: 0 auto; padding: 0 2rem;">
+
+    <div class="task-create-layout">
+        <!-- Левая часть: проект + задачи -->
+        <div class="project-preview" style="text-align: left">
+            <p><strong>Описание:</strong> <span th:text="${project.description}">Описание</span></p>
+            <p><strong>Статус:</strong> <span th:text="${project.projectStatus}">Статус</span></p>
+            <p><strong>Дедлайн:</strong> <span th:text="${project.deadLine != null ? project.deadLine : '—'}">Дедлайн</span></p>
+            <p><strong>Создатель:</strong> <span th:text="${project.projectCreator.name}">Создатель</span></p>
+            <p><strong>Дата создания:</strong> <span th:text="${#temporals.format(project.createdAt, 'dd.MM.yyyy HH:mm')}">Дата</span></p>
+
+            <h3 style="margin-top: 2rem;">Текущие задачи</h3>
+
+            <div th:if="${tasks.empty}">
+                <p>В проекте пока нет задач.</p>
+            </div>
+
+            <table class="table" th:unless="${tasks.empty}">
+                <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Название</th>
+                    <th>Статус</th>
+                    <th>Приоритет</th>
+                    <th>Исполнитель</th>
+                    <th>Дедлайн</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="task : ${tasks}">
+                    <td th:text="${task.id}"></td>
+                    <td th:text="${task.title}"></td>
+                    <td th:text="${task.taskStatus}"></td>
+                    <td th:text="${task.priority}"></td>
+                    <td th:text="${task.taskExecutor != null ? task.taskExecutor.name : '—'}"></td>
+                    <td th:text="${task.deadLine != null ? task.deadLine : '—'}"></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Правая часть: форма -->
+        <div class="task-form-panel">
+            <form method="post" th:action="@{/projects/{projectId}/task/create(projectId=${project.id})}">
+                <div class="form-group">
+                    <label for="title">Название задачи *</label>
+                    <input type="text" id="title" name="title" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="description">Описание</label>
+                    <textarea id="description" name="description" rows="3"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="taskStatus">Статус</label>
+                    <select id="taskStatus" name="taskStatus" required>
+                        <option value="TODO">TODO</option>
+                        <option value="IN_PROGRESS">В работе</option>
+                        <option value="REVIEW">Пересматривается</option>
+                        <option value="DONE">Готово</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="priority">Приоритет</label>
+                    <select id="priority" name="priority" required>
+                        <option value="LOW">Низкий</option>
+                        <option value="MEDIUM">Средний</option>
+                        <option value="HIGH">Высокий</option>
+                        <option value="URGENT">Срочный</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="deadLine">Дедлайн</label>
+                    <input type="date" id="deadLine" name="deadLine">
+                </div>
+
+                <div class="form-group">
+                    <label for="executorId">Исполнитель</label>
+                    <select id="executorId" name="executorId">
+                        <option value="">— Не назначен —</option>
+                        <option th:each="user : ${allUsers}"
+                                th:value="${user.id}"
+                                th:text="${user.name + ' (' + user.email + ')'}">
+                        </option>
+                    </select>
+                </div>
+
+                <button type="submit" class="submit-button" style="width: 100%;">Создать задачу</button>
+            </form>
+        </div>
+    </div>
+</main>
+</body>
+</html>

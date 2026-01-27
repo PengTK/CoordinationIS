@@ -25,7 +25,7 @@ public class Project {
     @Column
     private LocalDate deadLine;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(nullable = false)
     private User projectCreator;
 

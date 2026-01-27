@@ -2,9 +2,11 @@ package com.den41k.controller;
 
 import com.den41k.model.Project;
 import com.den41k.model.Role;
+import com.den41k.model.Task;
 import com.den41k.model.User;
 import com.den41k.repository.ProjectRepository;
 import com.den41k.service.ProjectService;
+import com.den41k.service.TaskService;
 import com.den41k.service.UserService;
 import io.micronaut.http.HttpResponse;
 import io.micronaut.http.MediaType;
@@ -23,10 +25,12 @@ public class ProjectController {
 
     private final UserService userService;
     private final ProjectService projectService;
+    private final TaskService taskService;
 
-    public ProjectController(UserService userService, ProjectService projectService) {
+    public ProjectController(UserService userService, ProjectService projectService, TaskService taskService) {
         this.userService = userService;
         this.projectService = projectService;
+        this.taskService = taskService;
     }
 
     @Get
@@ -73,5 +77,30 @@ public class ProjectController {
             return HttpResponse.redirect(URI.create("../projects"));
         }
         return HttpResponse.redirect(URI.create("../auth"));
+    }
+
+    @Get("/{id}")
+    @View("projectDetails")
+    public Map<String, Object> getProjectDetails(Long id, Session session) {
+        Map<String, Object> model = new HashMap<>();
+
+        String email = session.get("email", String.class).orElse(null);
+        if (email == null) {
+            return Map.of("error", "Доступ запрещён");
+        }
+
+        Optional<Project> projectOpt = projectService.findById(id);
+        if (projectOpt.isEmpty()) {
+            model.put("error", "Проект не найден");
+            return model;
+        }
+
+        Project project = projectOpt.get();
+        List<Task> tasks = taskService.findByProjectId(id);
+
+        model.put("email", email);
+        model.put("project", project);
+        model.put("tasks", tasks);
+        return model;
     }
 }
