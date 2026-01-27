@@ -7,6 +7,7 @@ import io.micronaut.core.annotation.NonNull;
 import io.micronaut.transaction.annotation.Transactional;
 import jakarta.inject.Singleton;
 
+import java.util.List;
 import java.util.Optional;
 
 @Singleton
@@ -22,5 +23,25 @@ public class RoleService {
     @Transactional
     public Role findByName(String name) {
         return roleRepository.findByName(name);
+    }
+
+    @Transactional
+    public List<Role> getAllRoles() {
+        return roleRepository.findAll();
+    }
+
+    @Transactional
+    public Optional<Role> findById(Long id) {
+        return roleRepository.findById(id);
+    }
+
+    @Transactional
+    public Role save(Role role) {
+        return roleRepository.merge(role);
+    }
+
+    @Transactional
+    public void deleteById(Long id) {
+        roleRepository.deleteById(id);
     }
 }

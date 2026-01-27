@@ -6,7 +6,7 @@
     <link rel="stylesheet" th:href="@{/static/css/style.css}">
 <body>
 <header>
-    <a href="home" class="logo">COORDIS</a>
+    <a href="/home" class="logo">COORDIS</a>
     <div th:if="${email != null}" class="auth-buttons, nav-right">
         <h3>Привет, <span th:text="${firstName}">Пользователь</span>!</h3>
         <h3>Роль: <span th:text="${role}">Гость</span></h3>

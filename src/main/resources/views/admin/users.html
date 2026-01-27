@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>COORDIS — Пользователи</title>
+    <link rel="stylesheet" th:href="@{/static/css/style.css}">
+</head>
+<body>
+<header>
+    <a href="/home" class="logo">COORDIS</a>
+    <div th:if="${email != null}" class="auth-buttons nav-right">
+        <a href="/admin/roles">Роли</a> |
+        <a href="/projects">Проекты</a>
+    </div>
+</header>
+
+<main style="text-align: left; max-width: 1000px; margin: 2rem auto;">
+    <h2>Пользователи системы</h2>
+    <a href="/admin/users/create" class="cta-button">+ Создать пользователя</a>
+
+    <table class="table" style="margin-top: 1.5rem;">
+        <thead>
+        <tr>
+            <th>ID</th>
+            <th>ФИО</th>
+            <th>Email</th>
+            <th>Роль</th>
+            <th>Дата регистрации</th>
+            <th>Действия</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="user : ${users}">
+            <td th:text="${user.id}"></td>
+            <td>
+                <span th:text="${user.name}"></span>
+                <span th:text="${user.sureName}"></span>
+                <span th:if="${user.patronymic != null}" th:text="' ' + ${user.patronymic}"></span>
+            </td>
+            <td th:text="${user.email}"></td>
+            <td th:text="${user.role.name}"></td>
+            <td th:text="${#temporals.format(user.createdAt, 'dd.MM.yyyy')}"></td>
+            <td>
+                <a th:href="@{/admin/users/edit/{id}(id=${user.id})}">Редактировать</a>
+                <form th:action="@{/admin/users/delete/{id}(id=${user.id})}" method="post" style="display:inline;">
+                    <button type="submit" onclick="return confirm('Удалить пользователя?')" style="color: #ff4d4d; background: none; border: none; cursor: pointer;">Удалить</button>
+                </form>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</main>
+</body>
+</html>

@@ -1,6 +1,8 @@
 package com.den41k.service;
 
+import com.den41k.model.Role;
 import com.den41k.model.User;
+import com.den41k.repository.RoleRepository;
 import com.den41k.repository.UserRepository;
 import io.micronaut.transaction.annotation.Transactional;
 import jakarta.inject.Inject;
@@ -40,4 +42,15 @@ public class UserService {
 
     @Transactional
     public Optional<User> findById(Long id) { return userRepository.findById(id); }
+
+
+    @Transactional
+    public User save(User user) {
+        return userRepository.merge(user);
+    }
+
+    @Transactional
+    public void deleteById(Long id) {
+        userRepository.deleteById(id);
+    }
 }

@@ -12,7 +12,7 @@
     <a href="home" class="logo">COORDIS</a>
     <div th:if="${email != null}" class="auth-buttons, nav-right">
         <h3>Привет, <span th:text="${firstName}">Пользователь</span>!</h3>
-        <h3>Роль: <span th:text="${role}">Гость</span></h3>
+        <h3>Роль: <span th:text="${role.name}">Гость</span></h3>
         <form method="post" action="auth/logout">
             <button type="submit">Выйти</button>
         </form>
@@ -27,7 +27,15 @@
 <main>
     <h1>COORDIS</h1>
     <p class="subtitle">Брутальная разработка. Чёткие дедлайны. Надёжные решения.</p>
+    <div th:if="${role != null and role.userPermission != @com.den41k.model.RolePermission@NO_PERMS}">
+        <a href="/admin/users" class="cta-button">Пользователи</a>
+    </div>
+    <div th:if="${role != null and role.rolePermission != @com.den41k.model.RolePermission@NO_PERMS}">
+        <a href="/admin/roles" class="cta-button">Роли</a>
+    </div>
+    <div th:if="${role != null and role.projectPermission != @com.den41k.model.RolePermission@NO_PERMS}">
     <a href="projects" class="cta-button">Проекты</a>
+    </div>
 </main>
 
 <footer>

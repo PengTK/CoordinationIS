@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="${editing ? 'Редактировать пользователя' : 'Создать пользователя'}">COORDIS</title>
+    <link rel="stylesheet" th:href="@{/static/css/style.css}">
+</head>
+<body>
+<header>
+    <a href="/home" class="logo">COORDIS</a>
+    <div th:if="${email != null}" class="auth-buttons nav-right">
+        <a href="/admin/users">← Назад к списку</a>
+    </div>
+</header>
+
+<main class="project-form-container">
+    <h2 th:text="${editing ? 'Редактировать пользователя' : 'Создать нового пользователя'}"></h2>
+
+    <form method="post" th:action="${editing ? '/admin/users/update' : '/admin/users'}">
+        <input type="hidden" name="id" th:if="${editing}" th:value="${user.id}">
+
+        <div class="form-group">
+            <label>Имя *</label>
+            <input type="text" name="name" th:value="${user.name}" required>
+        </div>
+
+        <div class="form-group">
+            <label>Фамилия *</label>
+            <input type="text" name="sureName" th:value="${user.sureName}" required>
+        </div>
+
+        <div class="form-group">
+            <label>Отчество</label>
+            <input type="text" name="patronymic" th:value="${user.patronymic}">
+        </div>
+
+        <div class="form-group">
+            <label>Email *</label>
+            <input type="email" name="email" th:value="${user.email}" required>
+        </div>
+
+        <div class="form-group">
+            <label>Пароль *</label>
+            <input type="password" name="password" th:if="${!editing}" required>
+            <input type="password" name="password" th:if="${editing}" placeholder="Оставьте пустым, чтобы не менять">
+        </div>
+
+        <div class="form-group">
+            <label>Роль *</label>
+            <select name="roleId" required>
+                <option th:each="r : ${roles}"
+                        th:value="${r.id}"
+                        th:text="${r.name}"
+                        th:selected="${user.role != null and r.id == user.role.id}">
+                </option>
+            </select>
+        </div>
+
+        <button type="submit" class="submit-button">Сохранить</button>
+    </form>
+</main>
+</body>
+</html>

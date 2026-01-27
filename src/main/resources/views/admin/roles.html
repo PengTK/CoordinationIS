@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>COORDIS — Роли</title>
+    <link rel="stylesheet" th:href="@{/static/css/style.css}">
+</head>
+<body>
+<header>
+    <a href="/home" class="logo">COORDIS</a>
+    <div th:if="${email != null}" class="auth-buttons nav-right">
+        <a href="/admin/users">Пользователи</a> |
+        <a href="/projects">Проекты</a>
+    </div>
+</header>
+
+<main style="text-align: left; max-width: 1000px; margin: 2rem auto;">
+    <h2>Роли в системе</h2>
+
+    <!-- === Форма создания роли === -->
+    <div class="project-form-container" style="margin-bottom: 2.5rem;">
+        <h2>Создать новую роль</h2>
+        <form method="post" action="/admin/roles">
+            <div class="form-group">
+                <label for="name">Название роли *</label>
+                <input type="text" id="name" name="name" required>
+            </div>
+
+            <div class="form-group">
+                <label for="projectPermission">Права на проекты *</label>
+                <select id="projectPermission" name="projectPermission" required>
+                    <option value="">— Выберите —</option>
+                    <option th:each="p : ${permissions}"
+                            th:value="${p}"
+                            th:text="${p.name}">
+                    </option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="taskPermission">Права на задачи *</label>
+                <select id="taskPermission" name="taskPermission" required>
+                    <option value="">— Выберите —</option>
+                    <option th:each="p : ${permissions}"
+                            th:value="${p}"
+                            th:text="${p.name}">
+                    </option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="userPermission">Права на управление пользователями *</label>
+                <select id="userPermission" name="userPermission" required>
+                    <option value="">— Выберите —</option>
+                    <option th:each="p : ${permissions}"
+                            th:value="${p}"
+                            th:text="${p.name}">
+                    </option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="rolePermission">Права на управление ролями *</label>
+                <select id="rolePermission" name="rolePermission" required>
+                    <option value="">— Выберите —</option>
+                    <option th:each="p : ${permissions}"
+                            th:value="${p}"
+                            th:text="${p.name}">
+                    </option>
+                </select>
+            </div>
+
+            <button type="submit" class="submit-button">Создать роль</button>
+        </form>
+    </div>
+
+    <!-- === Таблица существующих ролей === -->
+    <h3>Существующие роли</h3>
+
+    <table class="table" th:unless="${roles.empty}">
+        <thead>
+        <tr>
+            <th>ID</th>
+            <th>Название</th>
+            <th>Проекты</th>
+            <th>Задачи</th>
+            <th>Пользователи</th>
+            <th>Роли</th>
+            <th>Действия</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="role : ${roles}">
+            <form method="post" th:action="@{/admin/roles/update}" style="display: contents;">
+                <input type="hidden" name="id" th:value="${role.id}">
+                <td th:text="${role.id}"></td>
+                <td><input type="text" name="name" th:value="${role.name}" style="width: 100%; background: #1a1a1a; color: #e0e0e0; border: 1px solid #333;"></td>
+                <td>
+                    <select name="projectPermission">
+                        <option th:each="p : ${permissions}"
+                                th:value="${p}"
+                                th:text="${p.name}"
+                                th:selected="${p == role.projectPermission}">
+                        </option>
+                    </select>
+                </td>
+                <td>
+                    <select name="taskPermission">
+                        <option th:each="p : ${permissions}"
+                                th:value="${p}"
+                                th:text="${p.name}"
+                                th:selected="${p == role.taskPermission}">
+                        </option>
+                    </select>
+                </td>
+                <td>
+                    <select name="userPermission">
+                        <option th:each="p : ${permissions}"
+                                th:value="${p}"
+                                th:text="${p.name}"
+                                th:selected="${p == role.userPermission}">
+                        </option>
+                    </select>
+                </td>
+                <td>
+                    <select name="rolePermission">
+                        <option th:each="p : ${permissions}"
+                                th:value="${p}"
+                                th:text="${p.name}"
+                                th:selected="${p == role.rolePermission}">
+                        </option>
+                    </select>
+                </td>
+                <td>
+                    <!-- Форма обновления -->
+                    <form method="post" th:action="@{/admin/roles/update}" style="display:inline;">
+                        <input type="hidden" name="id" th:value="${role.id}">
+                        <input type="hidden" name="name" th:value="${role.name}">
+                        <input type="hidden" name="projectPermission" th:value="${role.projectPermission}">
+                        <input type="hidden" name="taskPermission" th:value="${role.taskPermission}">
+                        <input type="hidden" name="userPermission" th:value="${role.userPermission}">
+                        <input type="hidden" name="rolePermission" th:value="${role.rolePermission}">
+                        <button type="submit" class="submit-button" style="padding: 0.3rem 0.6rem; font-size: 0.9rem;">💾</button>
+                    </form>
+
+                    <!-- Форма удаления -->
+                    <form th:action="@{/admin/roles/delete/{id}(id=${role.id})}" method="post" style="display:inline;">
+                        <button type="submit" onclick="return confirm('Удалить роль?')" style="color: #ff4d4d; background: none; border: none; cursor: pointer; margin-left: 0.5rem;">🗑️</button>
+                    </form>
+                </td>
+            </form>
+        </tr>
+        </tbody>
+    </table>
+
+    <div th:if="${roles.empty}">
+        <p>В системе пока нет ролей.</p>
+    </div>
+</main>
+</body>
+</html>
