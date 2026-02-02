@@ -1,6 +1,7 @@
 package com.den41k.service;
 
 import com.den41k.model.Role;
+import com.den41k.model.Task;
 import com.den41k.model.User;
 import com.den41k.repository.RoleRepository;
 import com.den41k.repository.UserRepository;
@@ -8,8 +9,7 @@ import io.micronaut.transaction.annotation.Transactional;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @Singleton
 public class UserService {
@@ -18,6 +18,19 @@ public class UserService {
 
     public UserService(UserRepository userRepository) {
         this.userRepository = userRepository;
+    }
+
+    public List<User> searchUsers(String query, Long roleId, String sort) {
+        String queryWithWildcards = null;
+        if (query != null && !query.trim().isEmpty()) {
+            queryWithWildcards = "%" + query.trim().toLowerCase() + "%";
+        }
+
+        if ("oldest".equals(sort)) {
+            return userRepository.searchOldestFirst(queryWithWildcards, roleId);
+        } else {
+            return userRepository.search(queryWithWildcards, roleId);
+        }
     }
 
     @Transactional
@@ -49,8 +62,13 @@ public class UserService {
         return userRepository.merge(user);
     }
 
-    @Transactional
     public void deleteById(Long id) {
         userRepository.deleteById(id);
     }
+
+    @Transactional
+    public List<User> findAll() {
+        return userRepository.findAll();
+    }
+
 }

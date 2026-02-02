@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="${task != null ? 'Задача: ' + task.title : 'Задача не найдена'}">COORDIS — Задача</title>
+    <link rel="stylesheet" th:href="@{/static/css/style.css}">
+    <style>
+        .task-details-layout {
+            display: flex;
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+        .project-preview {
+            flex: 2;
+            min-width: 300px;
+            text-align: left;
+        }
+        .task-info-panel {
+            flex: 1;
+            background-color: #111;
+            border: 1px solid #222;
+            border-radius: 8px;
+            padding: 1.5rem;
+            max-width: 400px;
+        }
+        .deleted-user {
+            color: #ffaa33;
+            font-style: italic;
+        }
+        .table tbody tr.selected {
+            background-color: #1e1e1e;
+            border-left: 4px solid #ffaa33;
+        }
+        .table tbody tr.selected td {
+            color: #ffaa33;
+            font-weight: 600;
+        }
+        .comments-section {
+            margin-top: 2rem;
+            padding-top: 1rem;
+            border-top: 1px solid #222;
+        }
+        .comments-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        .comment {
+            background-color: #151515;
+            padding: 1rem;
+            margin-bottom: 0.75rem;
+            border-radius: 4px;
+            border-left: 3px solid #00bfff;
+        }
+        .comment-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+        }
+        .comment-author {
+            color: #00bfff;
+            font-weight: 600;
+        }
+        .comment-time {
+            color: #888;
+        }
+        .comment-content {
+            color: #e0e0e0;
+            line-height: 1.5;
+        }
+        .comment-actions {
+            margin-top: 0.5rem;
+            text-align: right;
+        }
+        .comment-actions form {
+            display: inline;
+        }
+        .add-comment-form {
+            margin-top: 1.5rem;
+            padding-top: 1rem;
+            border-top: 1px solid #222;
+        }
+        .no-comments {
+            color: #888;
+            font-style: italic;
+            padding: 1rem;
+            text-align: center;
+        }
+        @media (max-width: 900px) {
+            .task-details-layout {
+                flex-direction: column;
+            }
+            .task-info-panel {
+                max-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+<header>
+    <a href="/home" class="logo">COORDIS</a>
+    <div th:if="${email != null}" class="auth-buttons nav-right">
+        <a th:href="${project != null ? '/projects/' + project.id : '/projects'}">← Назад к проекту</a>
+    </div>
+</header>
+
+<main style="max-width: 1200px; margin: 0 auto; padding: 0 2rem;">
+
+    <div th:if="${error != null}" class="error-message" style="margin-bottom: 2rem;">
+        <p style="color: #ff4d4d; background-color: #221111; padding: 1rem; border-radius: 4px; border-left: 3px solid #ff3333;">
+            <strong>Ошибка:</strong> <span th:text="${error}"></span>
+        </p>
+    </div>
+
+    <div th:if="${task == null}">
+        <h2>Задача не найдена</h2>
+        <p>Запрашиваемая задача не существует или была удалена.</p>
+        <a th:href="${project != null ? '/projects/' + project.id : '/projects'}"
+           class="cta-button"
+           style="display: inline-block; margin-top: 1rem;">
+            Вернуться к проекту
+        </a>
+    </div>
+
+    <div th:if="${task != null}">
+        <div class="task-details-layout">
+            <div class="project-preview">
+                <h2 th:text="${project.title}">Название проекта</h2>
+                <p><strong>Описание:</strong> <span th:text="${project.description}">Описание</span></p>
+                <p><strong>Статус:</strong> <span th:text="${project.projectStatus}">Статус</span></p>
+                <p><strong>Дедлайн:</strong> <span th:text="${project.deadLine != null ? project.deadLine : '—'}">Дедлайн</span>
+                </p>
+                <p><strong>Создатель:</strong>
+                    <span th:text="${project.projectCreator != null ? project.projectCreator.name : 'Пользователь удалён'}"></span>
+                </p>
+                <p><strong>Дата создания:</strong> <span
+                        th:text="${#temporals.format(project.createdAt, 'dd.MM.yyyy HH:mm')}">Дата</span></p>
+
+                <h3 style="margin-top: 2rem;">Задачи проекта</h3>
+
+                <div th:if="${tasks == null || tasks.isEmpty()}">
+                    <p>В проекте пока нет задач.</p>
+                </div>
+
+                <table class="table" th:unless="${tasks == null || tasks.isEmpty()}">
+                    <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Название</th>
+                        <th>Статус</th>
+                        <th>Приоритет</th>
+                        <th>Исполнитель</th>
+                        <th>Дедлайн</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="t : ${tasks}"
+                        th:class="${t.id == task.id} ? 'selected' : ''">
+                        <td th:text="${t.id}"></td>
+                        <td>
+                            <a th:if="${t.id == task.id}"
+                               th:text="${t.title}"
+                               style="color: #ffaa33; text-decoration: none; font-weight: 600;"></a>
+                            <a th:if="${t.id != task.id}"
+                               th:href="@{/projects/{projectId}/task/{taskId}(projectId=${project.id}, taskId=${t.id})}"
+                               th:text="${t.title}"
+                               style="color: #00bfff; text-decoration: none;"></a>
+                        </td>
+                        <td th:text="${t.taskStatus}"></td>
+                        <td th:text="${t.priority}"></td>
+                        <td th:text="${t.taskExecutor != null ? t.taskExecutor.name : '—'}"></td>
+                        <td th:text="${t.deadLine != null ? t.deadLine : '—'}"></td>
+                    </tr>
+                    </tbody>
+                </table>
+
+                <div class="comments-section">
+                    <div class="comments-header">
+                        <h3>Комментарии (<span th:text="${commentCount}">0</span>)</h3>
+                    </div>
+
+                    <div th:if="${comments.empty}" class="no-comments">
+                        <p>Пока нет комментариев. Будьте первым!</p>
+                    </div>
+
+                    <div th:unless="${comments.empty}">
+                        <div th:each="comment : ${comments}" class="comment">
+                            <div class="comment-header">
+                                <span class="comment-author"
+                                      th:class="${comment.author == null} ? 'deleted-user'"
+                                      th:text="${comment.author != null ? comment.author.name : 'Автор удалён'}">
+                                </span>
+                                <span class="comment-time" th:text="${#temporals.format(comment.createdAt, 'dd.MM.yyyy HH:mm')}"></span>
+                            </div>
+                            <div class="comment-content" th:text="${comment.content}"></div>
+                            <div class="comment-actions"
+                                 th:if="${currentUser.role.name == 'ADMIN' || (comment.author != null && currentUser.id == comment.author.id)}">
+                                <form th:action="@{/projects/{projectId}/task/{taskId}/comment/{commentId}/delete(projectId=${project.id}, taskId=${task.id}, commentId=${comment.id})}"
+                                      method="post">
+                                    <button type="submit" class="cta-button danger" style="padding: 0.25rem 0.5rem; font-size: 0.85rem;"
+                                            onclick="return confirm('Удалить комментарий?')">
+                                        Удалить
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="add-comment-form">
+                        <h4>Добавить комментарий</h4>
+                        <form th:action="@{/projects/{projectId}/task/{taskId}/comment(projectId=${project.id}, taskId=${task.id})}"
+                              method="post">
+                            <div class="form-group">
+                                <textarea name="content" rows="3" required
+                                          style="width: 100%; padding: 0.75rem; background-color: #1a1a1a; border: 1px solid #333; border-radius: 4px; color: #e0e0e0; resize: vertical;"
+                                          placeholder="Напишите ваш комментарий..."></textarea>
+                            </div>
+                            <button type="submit" class="cta-button" style="width: 100%; padding: 0.75rem;">
+                                Отправить комментарий
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <div class="task-info-panel">
+                <h3 style="margin-top: 0; color: #e0e0e0;" th:text="${canEdit ? 'Редактировать задачу' : 'Задача: ' + task.title}"></h3>
+
+                <form method="post"
+                      th:action="@{/projects/{projectId}/task/{taskId}/update(projectId=${project.id}, taskId=${task.id})}">
+                    <div class="form-group">
+                        <label for="title">Название задачи *</label>
+                        <input type="text" id="title" name="title"
+                               th:value="${task.title}" required
+                               th:readonly="${!canEdit}"
+                               th:style="${!canEdit} ? 'background-color: #1a1a1a; color: #e0e0e0; border-color: #333;' : ''">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="description">Описание</label>
+                        <textarea id="description" name="description" rows="3"
+                                  th:text="${task.description}"
+                                  th:readonly="${!canEdit}"
+                                  th:style="${!canEdit} ? 'background-color: #1a1a1a; color: #e0e0e0; border-color: #333;' : ''"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="taskStatus">Статус</label>
+                        <select id="taskStatus" name="taskStatus" required
+                                th:disabled="${!canEdit}"
+                                th:style="${!canEdit} ? 'background-color: #1a1a1a; color: #e0e0e0; border-color: #333;' : ''">
+                            <option value="TODO"
+                                    th:selected="${task.taskStatus != null && task.taskStatus.name() == 'TODO'}">TODO
+                            </option>
+                            <option value="IN_PROGRESS"
+                                    th:selected="${task.taskStatus != null && task.taskStatus.name() == 'IN_PROGRESS'}">
+                                В работе
+                            </option>
+                            <option value="REVIEW"
+                                    th:selected="${task.taskStatus != null && task.taskStatus.name() == 'REVIEW'}">
+                                Пересматривается
+                            </option>
+                            <option value="DONE"
+                                    th:selected="${task.taskStatus != null && task.taskStatus.name() == 'DONE'}">Готово
+                            </option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="priority">Приоритет</label>
+                        <select id="priority" name="priority" required
+                                th:disabled="${!canEdit}"
+                                th:style="${!canEdit} ? 'background-color: #1a1a1a; color: #e0e0e0; border-color: #333;' : ''">
+                            <option value="LOW" th:selected="${task.priority != null && task.priority.name() == 'LOW'}">
+                                Низкий
+                            </option>
+                            <option value="MEDIUM"
+                                    th:selected="${task.priority != null && task.priority.name() == 'MEDIUM'}">Средний
+                            </option>
+                            <option value="HIGH"
+                                    th:selected="${task.priority != null && task.priority.name() == 'HIGH'}">Высокий
+                            </option>
+                            <option value="URGENT"
+                                    th:selected="${task.priority != null && task.priority.name() == 'URGENT'}">Срочный
+                            </option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="deadLine">Дедлайн</label>
+                        <input type="date" id="deadLine" name="deadLine"
+                               th:value="${task.deadLine != null ? #temporals.format(task.deadLine, 'yyyy-MM-dd') : ''}"
+                               th:readonly="${!canEdit}"
+                               th:style="${!canEdit} ? 'background-color: #1a1a1a; color: #e0e0e0; border-color: #333;' : ''">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="executorId">Исполнитель</label>
+                        <select id="executorId" name="executorId"
+                                th:disabled="${!canEdit}"
+                                th:style="${!canEdit} ? 'background-color: #1a1a1a; color: #e0e0e0; border-color: #333;' : ''">
+                            <option value="" th:selected="${task.taskExecutor == null}">— Не назначен —</option>
+                            <option th:each="user : ${allUsers}"
+                                    th:value="${user.id}"
+                                    th:text="${user.name + ' (' + user.email + ')'}"
+                                    th:selected="${task.taskExecutor != null && user.id == task.taskExecutor.id}">
+                            </option>
+                        </select>
+                    </div>
+
+                    <div class="form-group" th:if="${!canEdit}">
+                        <label>Проект</label>
+                        <a th:href="@{/projects/{id}(id=${project.id})}"
+                           style="color: #00bfff; text-decoration: none; display: block; padding: 0.5rem; background-color: #1a1a1a; border-radius: 4px;">
+                            <span th:text="${project.title}"></span>
+                        </a>
+                    </div>
+
+                    <button type="submit" class="submit-button" style="width: 100%;" th:if="${canEdit}">
+                        Сохранить изменения
+                    </button>
+                </form>
+
+                <div style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid #222;" th:if="${canEdit}">
+                    <form th:action="@{/projects/{projectId}/task/{taskId}/delete(projectId=${project.id}, taskId=${task.id})}"
+                          method="post">
+                        <button type="submit" class="cta-button danger"
+                                onclick="return confirm('Удалить задачу? Это действие нельзя отменить.')"
+                                style="width: 100%; padding: 0.75rem;">
+                            Удалить задачу
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+</body>
+</html>

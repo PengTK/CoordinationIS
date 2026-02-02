@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <title>COORDIS — Вход</title>
     <link rel="stylesheet" th:href="@{/static/css/style.css}">
+</head>
 <body>
 
 <header>
@@ -36,22 +37,18 @@
                 <td th:text="${project.description}"></td>
                 <td th:text="${project.projectStatus}"></td>
                 <td th:text="${project.deadLine}"></td>
-                <td th:text="${project.projectCreator.name}"></td>
+                <td th:text="${project.projectCreator != null ? project.projectCreator.name : 'Пользователь удалён'}"></td>
                 <td th:text="${project.createdAt}"></td>
                 <td>
-                    <a th:href="@{/projects/{id}(id=${project.id})}">Просмотр</a>
-                    <a th:href="@{/projects/{id}/edit(id=${project.id})}">Редактировать</a>
-                    <form th:action="@{/projects/{id}/delete(id=${project.id})}" method="post" style="display:inline;">
-                        <button type="submit" onclick="return confirm('Удалить проект?')">Удалить</button>
-                    </form>
+                    <a th:href="@{/projects/{id}(id=${project.id})}" class="cta-button">Просмотр</a>
                 </td>
             </tr>
             </tbody>
         </table>
     </div>
-<div th:if="${email == null}" class="error-message">
-    <a>У вас сейчас нет доступа к этому разделу</a>
-</div>
+    <div th:if="${email == null}" class="error-message">
+        <a>У вас сейчас нет доступа к этому разделу</a>
+    </div>
 </main>
 </body>
 </html>

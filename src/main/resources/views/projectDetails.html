@@ -4,6 +4,244 @@
     <meta charset="UTF-8">
     <title th:text="'Проект: ' + ${project.title}">COORDIS — Проект</title>
     <link rel="stylesheet" th:href="@{/static/css/style.css}">
+    <style>
+        .project-actions {
+            display: flex;
+            gap: 10px;
+            margin: 20px 0;
+        }
+        .project-actions form {
+            display: inline;
+        }
+        .deleted-user {
+            color: #ffaa33;
+            font-style: italic;
+        }
+        .task-row {
+            background-color: #1a1a1a;
+            border-left: 4px solid transparent;
+            transition: all 0.3s ease;
+        }
+        .task-row:hover {
+            background-color: #1e1e1e;
+            border-left-color: #00bfff;
+        }
+        .task-expanded {
+            background-color: #1e1e1e;
+            border-left-color: #ffaa33;
+        }
+        .task-details {
+            padding: 1rem;
+            margin-top: 0.5rem;
+            border-top: 1px solid #2a2a2a;
+            display: none;
+        }
+        .task-details.expanded {
+            display: block;
+        }
+        .comments-section {
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid #2a2a2a;
+        }
+        .comment {
+            background-color: #151515;
+            padding: 0.75rem;
+            margin-bottom: 0.5rem;
+            border-radius: 4px;
+            border-left: 3px solid #00bfff;
+        }
+        .comment-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+        }
+        .comment-author {
+            color: #00bfff;
+            font-weight: 600;
+        }
+        .comment-time {
+            color: #888;
+        }
+        .comment-content {
+            color: #e0e0e0;
+            line-height: 1.5;
+        }
+        .comment-actions {
+            margin-top: 0.5rem;
+            text-align: right;
+        }
+        .comment-actions form {
+            display: inline;
+        }
+        .add-comment-form {
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid #2a2a2a;
+        }
+        .expand-toggle {
+            background: none;
+            border: none;
+            color: #00bfff;
+            cursor: pointer;
+            padding: 0;
+            font-size: 0.9rem;
+            text-decoration: underline;
+        }
+        .expand-toggle:hover {
+            color: #00f0ff;
+        }
+        .comment-count-badge {
+            background-color: #00bfff;
+            color: #0a0a0a;
+            padding: 0.25rem 0.5rem;
+            border-radius: 10px;
+            font-size: 0.8em;
+            margin-left: 0.5rem;
+        }
+
+        /* ========== Календарь ========== */
+        .project-layout {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .project-info {
+            text-align: left;
+        }
+
+        .calendar-section {
+            background-color: #111;
+            border: 1px solid #222;
+            border-radius: 8px;
+            padding: 1rem;
+            position: sticky;
+            top: 2rem;
+            max-width: 100%;
+        }
+
+        .calendar-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid #222;
+        }
+
+        .calendar-title {
+            font-size: 1.1rem;
+            color: #e0e0e0;
+            margin: 0;
+            flex: 1;
+            text-align: center;
+        }
+
+        .calendar-nav {
+            background: none;
+            border: none;
+            color: #00bfff;
+            font-size: 1.4rem;
+            cursor: pointer;
+            padding: 0 0.3rem;
+            transition: color 0.2s;
+            text-decoration: none;
+        }
+
+        .calendar-nav:hover {
+            color: #ffaa33;
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 3px;
+        }
+
+        .calendar-day-header {
+            text-align: center;
+            font-weight: 600;
+            color: #888;
+            font-size: 0.7rem;
+            padding: 0.3rem 0;
+            text-transform: uppercase;
+        }
+
+        .calendar-day {
+            aspect-ratio: 1;
+            border: 2px solid transparent;
+            border-radius: 4px;
+            padding: 0.1rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            transition: all 0.2s;
+            cursor: default;
+            background-color: #151515;
+            font-size: 0.75rem;
+        }
+
+        .calendar-day:hover {
+            transform: scale(1.1);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+            z-index: 10;
+        }
+
+        .calendar-day.other-month {
+            opacity: 0.3;
+            background-color: #0f0f0f;
+        }
+
+        .calendar-day-number {
+            font-size: 0.75rem;
+            color: #e0e0e0;
+            font-weight: 500;
+        }
+
+        .calendar-day.today {
+            background-color: #1a1a1a;
+            border-color: #00bfff;
+        }
+
+        .calendar-day.today .calendar-day-number {
+            color: #00bfff;
+            font-weight: 700;
+        }
+
+        .calendar-task-count {
+            position: absolute;
+            bottom: 3px;
+            right: 3px;
+            background-color: rgba(0, 0, 0, 0.8);
+            color: #ffaa33;
+            font-size: 0.6rem;
+            font-weight: 700;
+            padding: 1px 5px;
+            border-radius: 10px;
+            min-width: 18px;
+            text-align: center;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+        }
+
+        .calendar-legend {
+            display: none; /* Скрыть легенду для компактности */
+        }
+
+        @media (max-width: 900px) {
+            .project-layout {
+                grid-template-columns: 1fr;
+            }
+
+            .calendar-section {
+                position: static;
+            }
+        }
+    </style>
 </head>
 <body>
 <header>
@@ -13,47 +251,191 @@
     </div>
 </header>
 
-<main style="text-align: left; max-width: 900px; margin: 2rem auto;">
-    <h2 th:text="${project.title}">Название проекта</h2>
-    <p><strong>Описание:</strong> <span th:text="${project.description}">Описание</span></p>
-    <p><strong>Статус:</strong> <span th:text="${project.projectStatus}">Статус</span></p>
-    <p><strong>Дедлайн:</strong> <span th:text="${project.deadLine} ?: '—'">Дедлайн</span></p>
-    <p><strong>Создатель:</strong> <span th:text="${project.projectCreator.name}">Создатель</span></p>
-    <p><strong>Дата создания:</strong> <span th:text="${#temporals.format(project.createdAt, 'dd.MM.yyyy HH:mm')}">Дата</span></p>
+<main style="max-width: 1200px; margin: 2rem auto; padding: 0 1rem;">
 
-    <h3 style="margin-top: 2rem;">Задачи проекта</h3>
+    <div class="project-layout">
+        <div class="project-info">
+            <h2 th:text="${project.title}">Название проекта</h2>
 
-    <div th:if="${tasks.empty}">
-        <p>В этом проекте пока нет задач.</p>
-    </div>
+            <p><strong>Описание:</strong> <span th:text="${project.description}">Описание</span></p>
+            <p><strong>Статус:</strong> <span th:text="${project.projectStatus}">Статус</span></p>
+            <p><strong>Дедлайн:</strong> <span th:text="${project.deadLine} ?: '—'">Дедлайн</span></p>
+            <p><strong>Создатель:</strong>
+                <span th:text="${project.projectCreator != null ? project.projectCreator.name : 'Пользователь удалён'}"></span>
+            </p>
+            <p><strong>Дата создания:</strong> <span th:text="${#temporals.format(project.createdAt, 'dd.MM.yyyy HH:mm')}">Дата</span></p>
 
-    <table class="table" th:unless="${tasks.empty}">
-        <thead>
-        <tr>
-            <th>ID</th>
-            <th>Название</th>
-            <th>Описание</th>
-            <th>Статус</th>
-            <th>Приоритет</th>
-            <th>Исполнитель</th>
-            <th>Дедлайн</th>
-        </tr>
-        </thead>
-        <tbody>
-        <tr th:each="task : ${tasks}">
-            <td th:text="${task.id}"></td>
-            <td th:text="${task.title}"></td>
-            <td th:text="${task.description}"></td>
-            <td th:text="${task.taskStatus}"></td>
-            <td th:text="${task.priority}"></td>
-            <td th:text="${task.taskExecutor != null ? task.taskExecutor.name : '—'}"></td>
-            <td th:text="${task.deadLine != null ? task.deadLine : '—'}"></td>
-        </tr>
-        </tbody>
-    </table>
+            <div class="project-actions" th:if="${canEdit}">
+                <a th:href="@{/projects/{id}/edit(id=${project.id})}" class="cta-button">Редактировать</a>
+            </div>
 
-    <div style="margin-top: 2rem;">
-        <a th:href="@{/projects/{id}/task/create(id=${project.id})}" class="cta-button">+ Создать задачу</a>
+            <div class="project-actions" th:if="${canEdit}">
+                <form th:action="@{/projects/{id}/delete(id=${project.id})}" method="post" style="display:inline;">
+                    <button type="submit" class="cta-button danger"
+                            onclick="return confirm('Вы уверены, что хотите удалить этот проект? Все связанные задачи также будут удалены!')">Удалить</button>
+                </form>
+            </div>
+
+            <h3 style="margin-top: 2rem;">Задачи проекта</h3>
+
+            <div style="margin-top: 2rem; background-color: #151515; border: 1px solid #222; border-radius: 8px; padding: 1.5rem;">
+                <h3 style="margin-top: 0; color: #e0e0e0;">Управление задачами</h3>
+
+                <form method="get" th:action="@{/projects/{id}(id=${project.id})}"
+                      style="display: flex; flex-wrap: wrap; gap: 1rem; margin-bottom: 1rem;">
+
+                    <div style="flex: 1; min-width: 200px;">
+                        <label for="search" style="display: block; margin-bottom: 0.5rem; color: #aaa; font-size: 0.85rem;">Поиск по названию</label>
+                        <input type="text" id="search" name="search"
+                               th:value="${search}"
+                               placeholder="Введите название задачи..."
+                               style="width: 100%; padding: 0.75rem; background-color: #1a1a1a; border: 1px solid #333; border-radius: 4px; color: #e0e0e0;">
+                    </div>
+
+                    <div style="min-width: 150px;">
+                        <label for="status" style="display: block; margin-bottom: 0.5rem; color: #aaa; font-size: 0.85rem;">Статус</label>
+                        <select id="status" name="status" style="width: 100%; padding: 0.75rem; background-color: #1a1a1a; border: 1px solid #333; border-radius: 4px; color: #e0e0e0;">
+                            <option value="">Все статусы</option>
+                            <option value="TODO" th:selected="${status == 'TODO'}">TODO</option>
+                            <option value="IN_PROGRESS" th:selected="${status == 'IN_PROGRESS'}">В работе</option>
+                            <option value="REVIEW" th:selected="${status == 'REVIEW'}">Пересматривается</option>
+                            <option value="DONE" th:selected="${status == 'DONE'}">Готово</option>
+                        </select>
+                    </div>
+
+                    <div style="min-width: 150px;">
+                        <label for="priority" style="display: block; margin-bottom: 0.5rem; color: #aaa; font-size: 0.85rem;">Приоритет</label>
+                        <select id="priority" name="priority" style="width: 100%; padding: 0.75rem; background-color: #1a1a1a; border: 1px solid #333; border-radius: 4px; color: #e0e0e0;">
+                            <option value="">Все приоритеты</option>
+                            <option value="LOW" th:selected="${priority == 'LOW'}">Низкий</option>
+                            <option value="MEDIUM" th:selected="${priority == 'MEDIUM'}">Средний</option>
+                            <option value="HIGH" th:selected="${priority == 'HIGH'}">Высокий</option>
+                            <option value="URGENT" th:selected="${priority == 'URGENT'}">Срочный</option>
+                        </select>
+                    </div>
+
+                    <div style="min-width: 200px;">
+                        <label for="executor" style="display: block; margin-bottom: 0.5rem; color: #aaa; font-size: 0.85rem;">Исполнитель</label>
+                        <select id="executor" name="executor" style="width: 100%; padding: 0.75rem; background-color: #1a1a1a; border: 1px solid #333; border-radius: 4px; color: #e0e0e0;">
+                            <option value="">Все исполнители</option>
+                            <option value="UNASSIGNED" th:selected="${executor == 'UNASSIGNED'}">Не назначен</option>
+                            <option th:each="user : ${allUsers}"
+                                    th:value="${user.id}"
+                                    th:text="${user.name}"
+                                    th:selected="${executor != null && executor == user.id.toString()}">
+                            </option>
+                        </select>
+                    </div>
+
+                    <div style="display: flex; gap: 0.5rem; align-items: flex-end; min-width: 200px;">
+                        <button type="submit" class="cta-button" style="padding: 0.75rem 1.5rem;">
+                            Применить
+                        </button>
+                        <a th:href="@{/projects/{id}(id=${project.id})}" class="cta-button" style="padding: 0.75rem 1.5rem; background-color: #333;">
+                            Сбросить
+                        </a>
+                    </div>
+                </form>
+
+                <div style="color: #888; font-size: 0.9rem;">
+                    Показано <span th:text="${tasks.size()}">0</span> из <span th:text="${totalTasksCount}">0</span> задач
+                </div>
+            </div>
+
+            <div th:if="${tasks.empty}">
+                <p>Задачи не найдены.</p>
+            </div>
+
+            <table class="table" th:unless="${tasks.empty}">
+                <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Название</th>
+                    <th>Статус</th>
+                    <th>Приоритет</th>
+                    <th>Исполнитель</th>
+                    <th>Дедлайн</th>
+                    <th>Комментарии</th>
+                    <th>Действия</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="task : ${tasks}" class="task-row">
+                    <td th:text="${task.id}"></td>
+                    <td th:text="${task.title}"></td>
+                    <td th:text="${task.taskStatus}"></td>
+                    <td th:text="${task.priority}"></td>
+                    <td th:text="${task.taskExecutor != null ? task.taskExecutor.name : '—'}"></td>
+                    <td th:text="${task.deadLine != null ? task.deadLine : '—'}"></td>
+                    <td>
+                        <span th:text="${commentCounts.get(task.id)} ?: 0"></span>
+                        <span class="comment-count-badge" th:if="${commentCounts.get(task.id) != null && commentCounts.get(task.id) > 0}"
+                              th:text="${commentCounts.get(task.id)}"></span>
+                    </td>
+                    <td>
+                        <a th:href="@{/projects/{projectId}/task/{taskId}(projectId=${project.id}, taskId=${task.id})}"
+                           class="cta-button"
+                           style="display: block; text-align: center; padding: 0.5rem;">
+                            Просмотр
+                        </a>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+
+            <div style="margin-top: 2rem;" th:if="${canEdit}">
+                <a th:href="@{/projects/{id}/task/create(id=${project.id})}" class="cta-button">+ Создать задачу</a>
+            </div>
+        </div>
+
+        <div class="calendar-section">
+            <div class="calendar-header">
+                <a th:href="@{/projects/{id}(id=${project.id}, month=${calendar.prevMonth})}"
+                   class="calendar-nav">
+                    ❮
+                </a>
+
+                <h3 class="calendar-title">
+                    <span th:text="${calendar.monthName}"></span> <span th:text="${calendar.year}"></span>
+                </h3>
+
+                <a th:href="@{/projects/{id}(id=${project.id}, month=${calendar.nextMonth})}"
+                   class="calendar-nav">
+                    ❯
+                </a>
+            </div>
+
+            <div class="calendar-grid">
+                <div class="calendar-day-header">Пн</div>
+                <div class="calendar-day-header">Вт</div>
+                <div class="calendar-day-header">Ср</div>
+                <div class="calendar-day-header">Чт</div>
+                <div class="calendar-day-header">Пт</div>
+                <div class="calendar-day-header">Сб</div>
+                <div class="calendar-day-header">Вс</div>
+
+                <div th:each="day : ${calendar.days}"
+                     class="calendar-day"
+                     th:classappend="${!day.currentMonth ? 'other-month' : ''}
+                        + (${#temporals.format(day.date, 'yyyy-MM-dd') == #temporals.format(#temporals.createNow(), 'yyyy-MM-dd') ? ' today' : ''})"
+                     th:style="${day.color} != null ? 'border-color: ' + ${day.color} + '; background: linear-gradient(135deg, ' + ${day.color} + '15, #151515);' : ''">
+                    <div class="calendar-day-number" th:text="${day.dayOfMonth}"></div>
+                    <div th:if="${day.taskCount > 0}" class="calendar-task-count">
+                        <span th:text="${day.taskCount}"></span>
+                    </div>
+                </div>
+            </div>
+
+            <div style="margin-top: 1rem; padding-top: 0.75rem; border-top: 1px solid #222; font-size: 0.7rem; color: #888;">
+                <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                    <span>🔴 Срочный</span>
+                    <span>🟠 Высокий</span>
+                    <span>🟡 Средний</span>
+                    <span>🟢 Низкий</span>
+                    <span>🟣 Дедлайн проекта</span>
+                </div>
+            </div>
+        </div>
     </div>
 </main>
 </body>

@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="${editing ? 'Редактировать роль' : 'Создать роль'}">COORDIS — Роли</title>
+    <link rel="stylesheet" th:href="@{/static/css/style.css}">
+</head>
+<body>
+<header>
+    <a href="/home" class="logo">COORDIS</a>
+    <div th:if="${email != null}" class="auth-buttons nav-right">
+        <a href="/admin/roles">← Назад к списку ролей</a>
+    </div>
+</header>
+
+<main class="project-form-container">
+    <h2 th:text="${editing ? 'Редактировать роль' : 'Создать новую роль'}"></h2>
+
+    <form method="post" th:action="${editing ? '/admin/roles/update' : '/admin/roles'}">
+        <input type="hidden" name="id" th:if="${editing}" th:value="${role.id}">
+
+        <div class="form-group">
+            <label for="name">Название роли *</label>
+            <input type="text" id="name" name="name" th:value="${role.name}" required>
+        </div>
+
+        <div class="form-group">
+            <label for="projectPermission">Права на проекты *</label>
+            <select id="projectPermission" name="projectPermission" required>
+                <option value="">— Выберите —</option>
+                <option th:each="p : ${permissions}"
+                        th:value="${p}"
+                        th:text="${p.name}"
+                        th:selected="${p == role.projectPermission}">
+                </option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="taskPermission">Права на задачи *</label>
+            <select id="taskPermission" name="taskPermission" required>
+                <option value="">— Выберите —</option>
+                <option th:each="p : ${permissions}"
+                        th:value="${p}"
+                        th:text="${p.name}"
+                        th:selected="${p == role.taskPermission}">
+                </option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="userPermission">Права на управление пользователями *</label>
+            <select id="userPermission" name="userPermission" required>
+                <option value="">— Выберите —</option>
+                <option th:each="p : ${permissions}"
+                        th:value="${p}"
+                        th:text="${p.name}"
+                        th:selected="${p == role.userPermission}">
+                </option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="rolePermission">Права на управление ролями *</label>
+            <select id="rolePermission" name="rolePermission" required>
+                <option value="">— Выберите —</option>
+                <option th:each="p : ${permissions}"
+                        th:value="${p}"
+                        th:text="${p.name}"
+                        th:selected="${p == role.rolePermission}">
+                </option>
+            </select>
+        </div>
+
+        <button type="submit" class="submit-button">Сохранить роль</button>
+    </form>
+</main>
+</body>
+</html>

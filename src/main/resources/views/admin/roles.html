@@ -4,6 +4,32 @@
     <meta charset="UTF-8">
     <title>COORDIS — Роли</title>
     <link rel="stylesheet" th:href="@{/static/css/style.css}">
+    <style>
+        /* Используемая роль — тёмный фон с оранжевым акцентом */
+        .role-in-use {
+            background-color: #1e1e1e;
+            border-left: 4px solid #ffaa33;
+        }
+
+        /* Бейдж с количеством пользователей */
+        .user-count-badge {
+            background: linear-gradient(90deg, #1a1a1a, #2a2a2a);
+            color: #ffaa33;
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            font-size: 0.85em;
+            margin-left: 0.5rem;
+            border: 1px solid #ffaa33;
+            font-weight: 600;
+        }
+
+        /* Текст "Нельзя удалить" */
+        .role-in-use .cannot-delete {
+            color: #ffaa33;
+            font-style: italic;
+            font-weight: 500;
+        }
+    </style>
 </head>
 <body>
 <header>
@@ -17,7 +43,6 @@
 <main style="text-align: left; max-width: 1000px; margin: 2rem auto;">
     <h2>Роли в системе</h2>
 
-    <!-- === Форма создания роли === -->
     <div class="project-form-container" style="margin-bottom: 2.5rem;">
         <h2>Создать новую роль</h2>
         <form method="post" action="/admin/roles">
@@ -74,10 +99,9 @@
         </form>
     </div>
 
-    <!-- === Таблица существующих ролей === -->
     <h3>Существующие роли</h3>
 
-    <table class="table" th:unless="${roles.empty}">
+    <table class="table">
         <thead>
         <tr>
             <th>ID</th>
@@ -86,76 +110,54 @@
             <th>Задачи</th>
             <th>Пользователи</th>
             <th>Роли</th>
+            <th>Пользователей</th>
             <th>Действия</th>
         </tr>
         </thead>
         <tbody>
-        <tr th:each="role : ${roles}">
-            <form method="post" th:action="@{/admin/roles/update}" style="display: contents;">
-                <input type="hidden" name="id" th:value="${role.id}">
-                <td th:text="${role.id}"></td>
-                <td><input type="text" name="name" th:value="${role.name}" style="width: 100%; background: #1a1a1a; color: #e0e0e0; border: 1px solid #333;"></td>
-                <td>
-                    <select name="projectPermission">
-                        <option th:each="p : ${permissions}"
-                                th:value="${p}"
-                                th:text="${p.name}"
-                                th:selected="${p == role.projectPermission}">
-                        </option>
-                    </select>
-                </td>
-                <td>
-                    <select name="taskPermission">
-                        <option th:each="p : ${permissions}"
-                                th:value="${p}"
-                                th:text="${p.name}"
-                                th:selected="${p == role.taskPermission}">
-                        </option>
-                    </select>
-                </td>
-                <td>
-                    <select name="userPermission">
-                        <option th:each="p : ${permissions}"
-                                th:value="${p}"
-                                th:text="${p.name}"
-                                th:selected="${p == role.userPermission}">
-                        </option>
-                    </select>
-                </td>
-                <td>
-                    <select name="rolePermission">
-                        <option th:each="p : ${permissions}"
-                                th:value="${p}"
-                                th:text="${p.name}"
-                                th:selected="${p == role.rolePermission}">
-                        </option>
-                    </select>
-                </td>
-                <td>
-                    <!-- Форма обновления -->
-                    <form method="post" th:action="@{/admin/roles/update}" style="display:inline;">
-                        <input type="hidden" name="id" th:value="${role.id}">
-                        <input type="hidden" name="name" th:value="${role.name}">
-                        <input type="hidden" name="projectPermission" th:value="${role.projectPermission}">
-                        <input type="hidden" name="taskPermission" th:value="${role.taskPermission}">
-                        <input type="hidden" name="userPermission" th:value="${role.userPermission}">
-                        <input type="hidden" name="rolePermission" th:value="${role.rolePermission}">
-                        <button type="submit" class="submit-button" style="padding: 0.3rem 0.6rem; font-size: 0.9rem;">💾</button>
-                    </form>
+        <tr th:each="roleData : ${rolesWithUsage}"
+            th:class="${roleData.inUse} ? 'role-in-use' : ''">
+            <td th:text="${roleData.role.id}"></td>
+            <td>
+                <span th:text="${roleData.role.name}"></span>
+                <span th:if="${roleData.inUse}"
+                      class="user-count-badge"
+                      th:text="${roleData.userCount}">
+                </span>
+            </td>
+            <td th:text="${roleData.role.projectPermission.name}"></td>
+            <td th:text="${roleData.role.taskPermission.name}"></td>
+            <td th:text="${roleData.role.userPermission.name}"></td>
+            <td th:text="${roleData.role.rolePermission.name}"></td>
+            <td>
+                <span th:text="${roleData.userCount}"></span>
+                <span th:if="${roleData.inUse}" style="color: #ffaa33; margin-left: 0.25rem;">●</span>
+            </td>
+            <td>
+                <a th:href="@{/admin/roles/edit/{id}(id=${roleData.role.id})}"
+                   style="color: #00bfff; text-decoration: none; margin-right: 1rem;">
+                    Редактировать
+                </a>
 
-                    <!-- Форма удаления -->
-                    <form th:action="@{/admin/roles/delete/{id}(id=${role.id})}" method="post" style="display:inline;">
-                        <button type="submit" onclick="return confirm('Удалить роль?')" style="color: #ff4d4d; background: none; border: none; cursor: pointer; margin-left: 0.5rem;">🗑️</button>
-                    </form>
-                </td>
-            </form>
+                <form th:if="${!roleData.inUse}"
+                      th:action="@{/admin/roles/delete/{id}(id=${roleData.role.id})}"
+                      method="post"
+                      style="display:inline;">
+                    <button type="submit"
+                            onclick="return confirm('Удалить роль?')"
+                            style="color: #ff4d4d; background: none; border: none; cursor: pointer; font-weight: 600;">
+                        Удалить
+                    </button>
+                </form>
+
+                <span th:if="${roleData.inUse}"
+                      class="cannot-delete">
+                    Нельзя удалить
+                </span>
+            </td>
         </tr>
         </tbody>
     </table>
-
-    <div th:if="${roles.empty}">
-        <p>В системе пока нет ролей.</p>
-    </div>
 </main>
 </body>
 </html>

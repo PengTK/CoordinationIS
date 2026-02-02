@@ -2,11 +2,13 @@ package com.den41k.controller;
 
 import com.den41k.model.Role;
 import com.den41k.model.User;
-import com.den41k.service.RoleService;
-import com.den41k.service.UserService;
+import com.den41k.service.*;
+import io.micronaut.core.annotation.Nullable;
 import io.micronaut.http.HttpResponse;
+import io.micronaut.http.MediaType;
 import io.micronaut.http.annotation.*;
 import io.micronaut.session.Session;
+import io.micronaut.transaction.annotation.Transactional;
 import io.micronaut.views.View;
 import org.mindrot.jbcrypt.BCrypt;
 
@@ -19,22 +21,48 @@ public class UserController {
 
     private final UserService userService;
     private final RoleService roleService;
+    private final ProjectService projectService;
+    private final TaskService taskService;
+    private final CommentService commentService;  // ← добавили зависимость
 
-    public UserController(UserService userService, RoleService roleService) {
+    public UserController(UserService userService,
+                          RoleService roleService,
+                          ProjectService projectService,
+                          TaskService taskService,
+                          CommentService commentService) {  // ← добавили в конструктор
         this.userService = userService;
         this.roleService = roleService;
+        this.projectService = projectService;
+        this.taskService = taskService;
+        this.commentService = commentService;
     }
+
 
     @Get
     @View("admin/users")
-    public Map<String, Object> listUsers(Session session) {
-        Map<String, Object> model = new HashMap<>();
+    public Map<String, Object> listUsers(
+            @Nullable String query,
+            @Nullable Long roleId,
+            @Nullable String sort,
+            Session session) {
+
         String email = session.get("email", String.class).orElse(null);
-        if (email != null) {
-            model.put("email", email);
-            model.put("users", userService.getAllUsers());
-            model.put("role", userService.findByEmail(email).get().getRole());
+        if (email == null) {
+            return Map.of("error", "Доступ запрещён");
         }
+
+        String effectiveSort = (sort != null) ? sort : "oldest";
+
+        List<User> users = userService.searchUsers(query, roleId, effectiveSort);
+        List<Role> allRoles = roleService.getAllRoles();
+
+        Map<String, Object> model = new HashMap<>();
+        model.put("email", email);
+        model.put("users", users);
+        model.put("allRoles", allRoles);
+        model.put("query", query);
+        model.put("roleId", roleId);
+        model.put("sort", effectiveSort);
         return model;
     }
 
@@ -52,7 +80,7 @@ public class UserController {
         return model;
     }
 
-    @Post(consumes = "application/x-www-form-urlencoded")
+    @Post(consumes = MediaType.APPLICATION_FORM_URLENCODED)
     public HttpResponse<?> saveUser(@Body Map<String, String> formData) {
         User user = new User();
         user.setName(formData.get("name"));
@@ -61,7 +89,7 @@ public class UserController {
         user.setEmail(formData.get("email"));
         user.setPassword(formData.get("password"));
         user.setCreatedAt(LocalDateTime.now());
-        user.setPassword(BCrypt.hashpw(user.getPassword(), BCrypt.gensalt(15)));
+        user.setPassword(BCrypt.hashpw(user.getPassword(), BCrypt.gensalt(12)));
 
         Role roleRef = new Role();
         roleRef.setId(Long.parseLong(formData.get("roleId")));
@@ -86,7 +114,7 @@ public class UserController {
         return model;
     }
 
-    @Post(value = "/update", consumes = "application/x-www-form-urlencoded")
+    @Post(value = "/update", consumes = MediaType.APPLICATION_FORM_URLENCODED)
     public HttpResponse<?> updateUser(@Body Map<String, String> formData) {
         Long id = Long.parseLong(formData.get("id"));
         User user = userService.findById(id).orElseThrow();
@@ -102,15 +130,24 @@ public class UserController {
 
         if (formData.get("password") != null && !formData.get("password").isEmpty()) {
             user.setPassword(formData.get("password"));
+            user.setPassword(BCrypt.hashpw(user.getPassword(), BCrypt.gensalt(12)));
         }
 
         userService.save(user);
         return HttpResponse.redirect(URI.create("/admin/users"));
     }
 
-    @Post(value = "/delete/{id}", consumes = "application/x-www-form-urlencoded")
+    @Post(value = "/delete/{id}", consumes = MediaType.APPLICATION_FORM_URLENCODED)
+    @Transactional
     public HttpResponse<?> deleteUser(Long id) {
-        userService.deleteById(id);
+        commentService.clearCommentAuthor(id);
+        projectService.clearProjectCreator(id);
+        taskService.clearTaskCreator(id);
+        taskService.clearTaskExecutor(id);
+
+        userService.deleteById(id);  // Теперь удалится
+
         return HttpResponse.redirect(URI.create("/admin/users"));
     }
+
 }

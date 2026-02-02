@@ -26,7 +26,7 @@ public class Project {
     private LocalDate deadLine;
 
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(nullable = false)
+    @JoinColumn(nullable = true)
     private User projectCreator;
 
     @Column(nullable = false, updatable = false)

@@ -3,6 +3,7 @@ package com.den41k.service;
 import com.den41k.model.Role;
 import com.den41k.model.User;
 import com.den41k.repository.RoleRepository;
+import com.den41k.repository.UserRepository;
 import io.micronaut.core.annotation.NonNull;
 import io.micronaut.transaction.annotation.Transactional;
 import jakarta.inject.Singleton;
@@ -14,11 +15,12 @@ import java.util.Optional;
 public class RoleService {
 
     private final RoleRepository roleRepository;
+    private final UserRepository userRepository;
 
-    public RoleService(RoleRepository roleRepository) {
+    public RoleService(RoleRepository roleRepository, UserRepository userRepository) {
         this.roleRepository = roleRepository;
+        this.userRepository = userRepository;
     }
-
 
     @Transactional
     public Role findByName(String name) {
@@ -43,5 +45,13 @@ public class RoleService {
     @Transactional
     public void deleteById(Long id) {
         roleRepository.deleteById(id);
+    }
+
+    public boolean isRoleInUse(Long roleId) {
+        return userRepository.countByRoleId(roleId) > 0;
+    }
+
+    public long countUsersWithRole(Long roleId) {
+        return userRepository.countByRoleId(roleId);
     }
 }

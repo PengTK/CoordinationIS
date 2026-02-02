@@ -1,6 +1,8 @@
 package com.den41k.model;
 
 import jakarta.persistence.*;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -26,11 +28,11 @@ public class Task {
     private Priority priority;
 
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn()
+    @JoinColumn(nullable = true)
     private User taskExecutor;
 
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(nullable = false)
+    @JoinColumn(nullable = true)
     private User taskCreator;
 
     @Column(nullable = false)

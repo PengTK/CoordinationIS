@@ -20,7 +20,7 @@ public class ProjectService {
 
     @Transactional
     public Project saveProject(Project project) {
-        return projectRepository.save(project);
+        return projectRepository.merge(project);
     }
 
     @Transactional
@@ -33,4 +33,19 @@ public class ProjectService {
         return projectRepository.findById(id);
     }
 
+    public void deleteProject(Long id) {
+        projectRepository.deleteById(id);
+    }
+
+    public void clearProjectCreator(Long userId) {
+        List<Project> projects = projectRepository.findByProjectCreatorId(userId);
+        for (Project project : projects) {
+            project.setProjectCreator(null);
+            projectRepository.merge(project);
+        }
+    }
+
+    public List<Project> findByProjectCreatorId(Long userId) {
+        return projectRepository.findByProjectCreatorId(userId);
+    }
 }

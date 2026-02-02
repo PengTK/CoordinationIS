@@ -22,6 +22,10 @@
             padding: 1.5rem;
             max-width: 400px;
         }
+        .deleted-user {
+            color: #ffaa33;
+            font-style: italic;
+        }
         @media (max-width: 900px) {
             .task-create-layout {
                 flex-direction: column;
@@ -43,13 +47,14 @@
 <main style="max-width: 1200px; margin: 0 auto; padding: 0 2rem;">
 
     <div class="task-create-layout">
-        <!-- Левая часть: проект + задачи -->
         <div class="project-preview" style="text-align: left">
             <h2 th:text="${project.title}">Название проекта</h2>
             <p><strong>Описание:</strong> <span th:text="${project.description}">Описание</span></p>
             <p><strong>Статус:</strong> <span th:text="${project.projectStatus}">Статус</span></p>
             <p><strong>Дедлайн:</strong> <span th:text="${project.deadLine != null ? project.deadLine : '—'}">Дедлайн</span></p>
-            <p><strong>Создатель:</strong> <span th:text="${project.projectCreator.name}">Создатель</span></p>
+            <p><strong>Создатель:</strong>
+                <span th:text="${project.projectCreator != null ? project.projectCreator.name : 'Пользователь удалён'}"></span>
+            </p>
             <p><strong>Дата создания:</strong> <span th:text="${#temporals.format(project.createdAt, 'dd.MM.yyyy HH:mm')}">Дата</span></p>
 
             <h3 style="margin-top: 2rem;">Текущие задачи</h3>
@@ -82,7 +87,6 @@
             </table>
         </div>
 
-        <!-- Правая часть: форма -->
         <div class="task-form-panel">
             <form method="post" th:action="@{/projects/{projectId}/task/create(projectId=${project.id})}">
                 <div class="form-group">

@@ -38,10 +38,10 @@ public class RegistrationController {
 
     @Post(consumes = MediaType.APPLICATION_FORM_URLENCODED)
     public HttpResponse<?> register(@Body Map<String, String> formData) {
-        if (roleService.findByName("Администратор")!=null) {
-            Role roleOpt = roleService.findByName("Администратор");
+        if (roleService.findByName("GUEST")!=null) {
+            Role roleOpt = roleService.findByName("GUEST");
             User user = new User(formData.get("name"), formData.get("surname"), formData.get("patronymic"), formData.get("email"), formData.get("password"), roleOpt);
-            user.setPassword(BCrypt.hashpw(user.getPassword(), BCrypt.gensalt(15)));
+            user.setPassword(BCrypt.hashpw(user.getPassword(), BCrypt.gensalt(12)));
             userService.registerUser(user);
         }
         return HttpResponse.redirect(URI.create("auth"));
