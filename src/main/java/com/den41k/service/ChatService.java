@@ -1,0 +1,182 @@
+package com.den41k.service;
+
+import com.den41k.model.*;
+import com.den41k.repository.ChatParticipantRepository;
+import com.den41k.repository.ChatRepository;
+import com.den41k.repository.MessageRepository;
+import io.micronaut.transaction.annotation.Transactional;
+import jakarta.inject.Singleton;
+
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
+@Singleton
+public class ChatService {
+    
+    private final ChatRepository chatRepository;
+    private final ChatParticipantRepository chatParticipantRepository;
+    private final MessageRepository messageRepository;
+    private final UserService userService;
+    
+    public ChatService(ChatRepository chatRepository, 
+                      ChatParticipantRepository chatParticipantRepository,
+                      MessageRepository messageRepository,
+                      UserService userService) {
+        this.chatRepository = chatRepository;
+        this.chatParticipantRepository = chatParticipantRepository;
+        this.messageRepository = messageRepository;
+        this.userService = userService;
+    }
+    
+    // Получить все чаты пользователя
+    public List<Chat> getUserChats(Long userId) {
+        return chatRepository.findByUserId(userId);
+    }
+    
+    // Создать личный чат
+    @Transactional
+    public Chat createPrivateChat(Long userId1, Long userId2) {
+        // Проверяем, существует ли уже чат между этими пользователями
+        Optional<Chat> existingChat = chatRepository.findPrivateChatBetween(userId1, userId2);
+        if (existingChat.isPresent()) {
+            return existingChat.get();
+        }
+        
+        User user1 = userService.findById(userId1).orElseThrow();
+        User user2 = userService.findById(userId2).orElseThrow();
+        
+        Chat chat = new Chat(ChatType.PRIVATE, user1);
+        chatRepository.save(chat);
+        
+        // Добавляем участников
+        ChatParticipant participant1 = new ChatParticipant(chat, user1, true);
+        ChatParticipant participant2 = new ChatParticipant(chat, user2, false);
+        
+        chatParticipantRepository.save(participant1);
+        chatParticipantRepository.save(participant2);
+        
+        return chat;
+    }
+    
+    // Создать групповой чат
+    @Transactional
+    public Chat createGroupChat(String name, Long creatorId, List<Long> participantIds) {
+        User creator = userService.findById(creatorId).orElseThrow();
+        
+        Chat chat = new Chat(ChatType.GROUP, creator);
+        chat.setName(name);
+        chat = chatRepository.save(chat);
+        
+        // Добавляем создателя как админа
+        ChatParticipant creatorParticipant = new ChatParticipant(chat, creator, true);
+        chatParticipantRepository.save(creatorParticipant);
+        
+        // Добавляем остальных участников
+        for (Long participantId : participantIds) {
+            if (!participantId.equals(creatorId)) {
+                User participant = userService.findById(participantId).orElseThrow();
+                ChatParticipant chatParticipant = new ChatParticipant(chat, participant, false);
+                chatParticipantRepository.save(chatParticipant);
+            }
+        }
+        
+        return chat;
+    }
+    
+    // Создать чат проекта
+    @Transactional
+    public Chat createProjectChat(Project project) {
+        User creator = project.getProjectCreator();
+        
+        Chat chat = new Chat(ChatType.PROJECT, creator);
+        chat.setName("Чат проекта: " + project.getTitle());
+        chat.setProject(project);
+        chat = chatRepository.save(chat);
+        
+        // Добавляем создателя проекта как админа
+        ChatParticipant creatorParticipant = new ChatParticipant(chat, creator, true);
+        chatParticipantRepository.save(creatorParticipant);
+        
+        return chat;
+    }
+    
+    // Отправить сообщение
+    @Transactional
+    public Message sendMessage(Long chatId, Long authorId, String content) {
+        Chat chat = chatRepository.findById(chatId)
+                .orElseThrow(() -> new RuntimeException("Чат не найден"));
+
+        User author = userService.findById(authorId)
+                .orElseThrow(() -> new RuntimeException("Пользователь не найден"));
+
+        // Проверяем, что автор является участником чата
+        Optional<ChatParticipant> participant = chatParticipantRepository.findByChatIdAndUserId(chatId, authorId);
+        if (participant.isEmpty()) {
+            throw new RuntimeException("Пользователь не является участником этого чата");
+        }
+
+        System.out.println("Создание сообщения для чата " + chatId);
+        Message message = new Message(chat, author, content);
+        message = messageRepository.save(message);
+
+        System.out.println("Сообщение сохранено с ID: " + message.getId());
+
+        // Обновляем время обновления чата
+        chat.setUpdatedAt(LocalDateTime.now());
+        chatRepository.save(chat);
+
+        System.out.println("Чат обновлён");
+
+        return message;
+    }
+    
+    // Получить последние сообщения чата
+    public List<Message> getChatMessages(Long chatId, int limit) {
+        return messageRepository.findLastMessages(chatId, limit);
+    }
+    
+    // Получить участников чата
+    public List<ChatParticipant> getChatParticipants(Long chatId) {
+        return chatParticipantRepository.findByChatId(chatId);
+    }
+    
+    // Пометить сообщения как прочитанные
+    @Transactional
+    public void markMessagesAsRead(Long chatId, Long userId) {
+        Optional<ChatParticipant> participant = chatParticipantRepository.findByChatIdAndUserId(chatId, userId);
+        participant.ifPresent(p -> {
+            p.setLastReadAt(LocalDateTime.now());
+            chatParticipantRepository.update(p);
+        });
+    }
+    
+    // Получить количество непрочитанных сообщений
+    public long getUnreadMessagesCount(Long chatId, Long userId) {
+        Optional<ChatParticipant> participant = chatParticipantRepository.findByChatIdAndUserId(chatId, userId);
+        if (participant.isEmpty()) {
+            return 0;
+        }
+        
+        LocalDateTime lastRead = participant.get().getLastReadAt();
+        if (lastRead == null) {
+            return messageRepository.countByChatId(chatId);
+        }
+        
+        return chatRepository.countUnreadMessages(chatId, lastRead);
+    }
+    
+    // Получить все непрочитанные сообщения пользователя
+    public long getTotalUnreadMessages(Long userId) {
+        List<Chat> chats = getUserChats(userId);
+        return chats.stream()
+                .mapToLong(chat -> getUnreadMessagesCount(chat.getId(), userId))
+                .sum();
+    }
+
+    @Transactional
+    public Optional<Chat> findById(Long id){
+        return chatRepository.findById(id);
+    }
+}

@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Чаты — COORDIS</title>
+    <link rel="stylesheet" th:href="@{/static/css/style.css}">
+    <style>
+        .chat-list {
+            display: flex;
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+        .chat-sidebar {
+            width: 300px;
+            background-color: #111;
+            border: 1px solid #222;
+            border-radius: 8px;
+            padding: 1.5rem;
+        }
+        .chat-main {
+            flex: 1;
+        }
+        .chat-item {
+            background-color: #1a1a1a;
+            padding: 1rem;
+            margin-bottom: 0.5rem;
+            border-radius: 4px;
+            border-left: 3px solid transparent;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+        .chat-item:hover {
+            background-color: #1e1e1e;
+            border-left-color: #00bfff;
+        }
+        .chat-item.unread {
+            background-color: #1e1e1e;
+            border-left-color: #ffaa33;
+            font-weight: 600;
+        }
+        .chat-item .chat-name {
+            color: #e0e0e0;
+            font-weight: 600;
+        }
+        .chat-item .chat-preview {
+            color: #888;
+            font-size: 0.85rem;
+            margin-top: 0.25rem;
+        }
+        .chat-item .unread-badge {
+            background-color: #ff4d4d;
+            color: white;
+            padding: 0.25rem 0.5rem;
+            border-radius: 10px;
+            font-size: 0.75rem;
+            margin-left: 0.5rem;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+        }
+        .modal-content {
+            background-color: #111;
+            border: 1px solid #222;
+            border-radius: 8px;
+            padding: 2rem;
+            max-width: 500px;
+            margin: 5rem auto;
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+        .close-modal {
+            background: none;
+            border: none;
+            color: #888;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+        .close-modal:hover {
+            color: #ffaa33;
+        }
+    </style>
+</head>
+<body>
+<header>
+    <a href="/home" class="logo">COORDIS</a>
+    <div th:if="${email != null}" class="auth-buttons nav-right">
+        <span style="color: #888; margin-right: 1rem;">
+            <span th:text="${totalUnread} ?: 0"></span> непрочитанных
+        </span>
+        <a href="/home">← Назад</a>
+    </div>
+</header>
+
+<main style="max-width: 1400px; margin: 2rem auto; padding: 0 1rem;">
+
+    <div class="chat-list">
+        <!-- Левая панель: список чатов -->
+        <div class="chat-sidebar">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                <h3 style="margin: 0; color: #e0e0e0;">Мои чаты</h3>
+                <button onclick="openModal('createChatModal')" class="cta-button" style="padding: 0.5rem 1rem; font-size: 0.9rem;">
+                    +
+                </button>
+            </div>
+
+            <div th:if="${chats.empty}">
+                <p style="color: #888;">У вас пока нет чатов</p>
+            </div>
+
+            <div th:unless="${chats.empty}">
+                <div th:each="chat : ${chats}" class="chat-item"
+                     th:classappend="${unreadCounts.get(chat.id) > 0} ? 'unread' : ''"
+                     th:onclick="'window.location.href=\'/chats/' + ${chat.id} + '\''">
+                    <div class="chat-name" th:text="${chat.name != null ? chat.name : (chat.participants.size() == 2 ? chat.participants[0].user.name + ' и ' + chat.participants[1].user.name : 'Групповой чат')}"></div>
+                    <div class="chat-preview" th:text="${chat.messages.empty ? 'Нет сообщений' : chat.messages.get(0).content}"></div>
+                    <div th:if="${unreadCounts.get(chat.id) > 0}" class="unread-badge" th:text="${unreadCounts.get(chat.id)}"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно создания чата -->
+    <div id="createChatModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 style="margin: 0; color: #e0e0e0;">Создать чат</h3>
+                <button class="close-modal" onclick="closeModal('createChatModal')">&times;</button>
+            </div>
+
+            <div style="margin-bottom: 1.5rem;">
+                <button onclick="showTab('private')" id="privateTab" class="cta-button" style="width: calc(50% - 5px);">Личный</button>
+                <button onclick="showTab('group')" id="groupTab" class="cta-button" style="width: calc(50% - 5px); background-color: #333;">Групповой</button>
+            </div>
+
+            <!-- Личный чат -->
+            <div id="privateTabContent">
+                <form method="post" th:action="@{/chats/private}" style="display: flex; flex-direction: column; gap: 1rem;">
+                    <div>
+                        <label for="privateUser" style="display: block; margin-bottom: 0.5rem; color: #aaa;">Выберите пользователя:</label>
+                        <select id="privateUser" name="userId" style="width: 100%; padding: 0.75rem; background-color: #1a1a1a; border: 1px solid #333; border-radius: 4px; color: #e0e0e0;">
+                            <option value="">-- Выберите пользователя --</option>
+                            <option th:each="user : ${allUsers}"
+                                    th:value="${user.id}"
+                                    th:text="${user.name + ' (' + user.email + ')'}"
+                                    th:if="${user.id != currentUser.id}">
+                            </option>
+                        </select>
+                    </div>
+                    <button type="submit" class="cta-button">Начать чат</button>
+                </form>
+            </div>
+
+            <!-- Групповой чат -->
+            <div id="groupTabContent" style="display: none;">
+                <form method="post" th:action="@{/chats/group}" style="display: flex; flex-direction: column; gap: 1rem;">
+                    <div>
+                        <label for="groupName" style="display: block; margin-bottom: 0.5rem; color: #aaa;">Название чата:</label>
+                        <input type="text" id="groupName" name="name" required
+                               style="width: 100%; padding: 0.75rem; background-color: #1a1a1a; border: 1px solid #333; border-radius: 4px; color: #e0e0e0;">
+                    </div>
+                    <div>
+                        <label style="display: block; margin-bottom: 0.5rem; color: #aaa;">Участники:</label>
+                        <div style="max-height: 200px; overflow-y: auto; border: 1px solid #333; border-radius: 4px; padding: 0.5rem;">
+                            <div th:each="user : ${allUsers}" th:if="${user.id != currentUser.id}">
+                                <label style="display: block; padding: 0.5rem; cursor: pointer;">
+                                    <input type="checkbox" name="participants" th:value="${user.id}" style="margin-right: 0.5rem;">
+                                    <span th:text="${user.name + ' (' + user.email + ')'}"></span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    <button type="submit" class="cta-button">Создать чат</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</main>
+
+<script>
+    function openModal(id) {
+        document.getElementById(id).style.display = 'block';
+    }
+
+    function closeModal(id) {
+        document.getElementById(id).style.display = 'none';
+    }
+
+    function showTab(tab) {
+        document.getElementById('privateTabContent').style.display = tab === 'private' ? 'block' : 'none';
+        document.getElementById('groupTabContent').style.display = tab === 'group' ? 'block' : 'none';
+
+        document.getElementById('privateTab').style.backgroundColor = tab === 'private' ? '#00bfff' : '#333';
+        document.getElementById('groupTab').style.backgroundColor = tab === 'group' ? '#00bfff' : '#333';
+    }
+
+    // Закрытие модалки по клику вне
+    window.onclick = function(event) {
+        if (event.target.classList.contains('modal')) {
+            event.target.style.display = 'none';
+        }
+    }
+</script>
+</body>
+</html>

@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="${chat.name != null ? chat.name : 'Чат'}">Чат — COORDIS</title>
+    <link rel="stylesheet" th:href="@{/static/css/style.css}">
+    <style>
+        .chat-container {
+            display: flex;
+            gap: 2rem;
+            margin-top: 2rem;
+            max-height: calc(100vh - 150px);
+        }
+        .chat-messages {
+            flex: 1;
+            background-color: #111;
+            border: 1px solid #222;
+            border-radius: 8px;
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            max-height: calc(100vh - 200px);
+        }
+        .chat-participants {
+            width: 250px;
+            background-color: #111;
+            border: 1px solid #222;
+            border-radius: 8px;
+            padding: 1.5rem;
+        }
+        .messages-list {
+            flex: 1;
+            overflow-y: auto;
+            margin-bottom: 1.5rem;
+            padding-right: 1rem;
+        }
+        .message {
+            margin-bottom: 1rem;
+            padding: 0.75rem;
+            border-radius: 8px;
+            max-width: 80%;
+        }
+        .message.own {
+            background-color: #00bfff;
+            color: #0a0a0a;
+            margin-left: auto;
+        }
+        .message.other {
+            background-color: #1a1a1a;
+            color: #e0e0e0;
+        }
+        .message-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+            font-size: 0.85rem;
+        }
+        .message-author {
+            font-weight: 600;
+        }
+        .message-time {
+            color: #888;
+        }
+        .message-content {
+            line-height: 1.5;
+        }
+        .message-input {
+            display: flex;
+            gap: 0.5rem;
+        }
+        .message-input textarea {
+            flex: 1;
+            padding: 0.75rem;
+            background-color: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 4px;
+            color: #e0e0e0;
+            resize: none;
+        }
+        .participant-item {
+            padding: 0.75rem;
+            margin-bottom: 0.5rem;
+            background-color: #1a1a1a;
+            border-radius: 4px;
+        }
+        .participant-name {
+            font-weight: 600;
+            color: #e0e0e0;
+        }
+        .participant-role {
+            font-size: 0.8rem;
+            color: #00bfff;
+        }
+    </style>
+</head>
+<body>
+<header>
+    <a href="/home" class="logo">COORDIS</a>
+    <div th:if="${email != null}" class="auth-buttons nav-right">
+        <a href="/chats">← Назад к чатам</a>
+    </div>
+</header>
+
+<main style="max-width: 1400px; margin: 2rem auto; padding: 0 1rem;">
+
+    <div class="chat-container">
+        <!-- Левая панель: сообщения -->
+        <div class="chat-messages">
+            <div style="margin-bottom: 1rem;">
+                <h3 style="margin: 0; color: #e0e0e0;" th:text="${chat.name != null ? chat.name : 'Чат'}"></h3>
+                <p style="color: #888; margin: 0.5rem 0 0 0;" th:text="${chat.type}"></p>
+            </div>
+
+            <div class="messages-list" id="messagesList">
+                <div th:each="message : ${messages}" class="message"
+                     th:classappend="${message.author.id == currentUser.id} ? 'own' : 'other'">
+                    <div class="message-header">
+                        <span class="message-author" th:text="${message.author.name}"></span>
+                        <span class="message-time" th:text="${#temporals.format(message.createdAt, 'HH:mm')}"></span>
+                    </div>
+                    <div class="message-content" th:text="${message.content}"></div>
+                </div>
+            </div>
+
+            <div class="message-input">
+                <textarea id="messageInput" rows="2" placeholder="Введите сообщение..."
+                          style="width: 100%;"></textarea>
+                <button onclick="sendMessage()" class="cta-button" style="padding: 0.75rem 1.5rem;">Отправить</button>
+            </div>
+        </div>
+
+        <!-- Правая панель: участники -->
+        <div class="chat-participants">
+            <h4 style="margin-top: 0; color: #e0e0e0;">Участники (<span th:text="${participants.size()}">0</span>)</h4>
+
+            <div th:each="participant : ${participants}" class="participant-item">
+                <div class="participant-name" th:text="${participant.user.name}"></div>
+                <div class="participant-role" th:text="${participant.isAdmin ? 'Администратор' : 'Участник'}"></div>
+            </div>
+
+            <div th:if="${chat.project != null}" style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid #222;">
+                <h4 style="color: #e0e0e0; margin: 0 0 0.5rem 0;">Проект</h4>
+                <a th:href="@{/projects/{id}(id=${chat.project.id})}"
+                   style="color: #00bfff; text-decoration: none; display: block; padding: 0.5rem; background-color: #1a1a1a; border-radius: 4px;">
+                    <span th:text="${chat.project.title}"></span>
+                </a>
+            </div>
+        </div>
+    </div>
+</main>
+
+<!-- Способ 1: через атрибут (самый надёжный) -->
+<div id="chatData"
+     th:data-chat-id="${chat.id}"
+     th:data-user-id="${currentUser.id}"
+     style="display: none;"></div>
+
+<script>
+    // Получаем данные из атрибутов
+    const chatData = document.getElementById('chatData');
+    const chatId = parseInt(chatData.dataset.chatId);
+    const currentUserId = parseInt(chatData.dataset.userId);
+
+    console.log('Chat ID:', chatId);
+    console.log('Current User ID:', currentUserId);
+
+    if (isNaN(chatId) || chatId === 0) {
+        alert('Ошибка: не удалось загрузить чат. ID чата: ' + chatId);
+        console.error('Chat ID is invalid:', chatId);
+    }
+
+    let lastMessageTime = new Date();
+
+    async function sendMessage() {
+        const input = document.getElementById('messageInput');
+        const content = input.value.trim();
+
+        if (content === '') return;
+
+        try {
+            console.log('Отправка сообщения в чат', chatId, ':', content);
+
+            const encodedContent = encodeURIComponent(content);
+            const response = await fetch(`/chats/${chatId}/message?content=${encodedContent}`, {
+                method: 'POST'
+            });
+
+            console.log('Ответ сервера:', response.status, response.ok);
+
+            if (response.ok) {
+                input.value = '';
+                loadNewMessages();
+            } else {
+                const errorText = await response.text();
+                console.error('Ошибка сервера:', errorText);
+                alert('Ошибка при отправке сообщения: ' + errorText);
+            }
+        } catch (error) {
+            console.error('Ошибка отправки сообщения:', error);
+            alert('Произошла ошибка при отправке сообщения: ' + error.message);
+        }
+    }
+
+    async function loadNewMessages() {
+    if (isNaN(chatId) || chatId === 0) {
+        console.error('Invalid chatId:', chatId);
+        return;
+    }
+
+    try {
+        // Форматируем дату в правильном формате ISO-8601
+        const sinceStr = lastMessageTime.toISOString()
+            .replace('Z', '')  // Убираем 'Z' в конце
+            .slice(0, 19);     // Только до секунд: "2026-02-03T12:14:05"
+
+        console.log('🔄 Запрос новых сообщений с:', sinceStr);
+
+        const response = await fetch(`/chats/${chatId}/messages/since?since=${sinceStr}`);
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error('❌ Ошибка сервера:', errorText);
+            return;
+        }
+
+        const newMessages = await response.json();
+        console.log('📥 Получено новых сообщений:', newMessages.length);
+
+        if (newMessages.length > 0) {
+            const messagesList = document.getElementById('messagesList');
+
+            newMessages.forEach(msg => {
+                const messageDiv = document.createElement('div');
+                messageDiv.className = 'message ' + (msg.author.id == currentUserId ? 'own' : 'other');
+
+                messageDiv.innerHTML = `
+                    <div class="message-header">
+                        <span class="message-author">${msg.author.name}</span>
+                        <span class="message-time">${new Date(msg.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+                    </div>
+                    <div class="message-content">${msg.content}</div>
+                `;
+
+                messagesList.appendChild(messageDiv);
+            });
+
+            messagesList.scrollTop = messagesList.scrollHeight;
+            lastMessageTime = new Date();
+        }
+    } catch (error) {
+        console.error('❌ Ошибка загрузки сообщений:', error);
+    }
+}
+
+
+    setInterval(loadNewMessages, 3000);
+
+    document.getElementById('messageInput').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            sendMessage();
+        }
+    });
+
+    // Загружаем сообщения при загрузке страницы
+    window.addEventListener('load', loadNewMessages);
+</script>
+</body>
+</html>
