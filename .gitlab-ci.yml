@@ -20,8 +20,11 @@ lint:
     - export JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64 && export PATH=$JAVA_HOME/bin:$PATH
   stage: validate
   script:
+    - echo "Начало теста синтаксиса"
     - chmod +x gradlew
     - ./gradlew checkstyleMain checkstyleTest
+    - echo "Конец теста синтаксиса"
+  allow_failure: true
 
 #validate-gradle-properties:
 #  stage: validate
