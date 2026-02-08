@@ -8,8 +8,7 @@ variables:
 test_build:
   stage: test
   before_script:
-    - export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
-    - export PATH=$JAVA_HOME/bin:$PATH
+    - export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64 && export PATH=$JAVA_HOME/bin:$PATH
   script:
     - echo "Начало теста билда"
     - chmod +x gradlew
