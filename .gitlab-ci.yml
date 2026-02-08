@@ -10,6 +10,7 @@ validate-migrations:
   before_script:
   script:
     - echo "Начало теста билда"
+    - chmod +x gradlew
     - ./gradlew build
     - echo "Тест билда завершён"
 
