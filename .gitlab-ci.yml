@@ -4,7 +4,6 @@ stages:
 
 variables:
   MICRONAUT_GRADLE_PROPERTIES: "gradle.properties"
-  JAVA_HOME: "/usr/bin/java"
 
 test_build:
   stage: test
