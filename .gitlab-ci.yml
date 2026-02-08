@@ -15,6 +15,14 @@ test_build:
     - ./gradlew build -x test --no-daemon -Dorg.gradle.java.installations.auto-detect=false
     - echo "Тест билда завершён"
 
+lint:
+  before_script:
+    - export JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64 && export PATH=$JAVA_HOME/bin:$PATH
+  stage: validate
+  script:
+    - chmod +x gradlew
+    - ./gradlew checkstyleMain checkstyleTest
+
 #validate-gradle-properties:
 #  stage: validate
 #  before_script:

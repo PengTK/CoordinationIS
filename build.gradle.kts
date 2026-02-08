@@ -2,6 +2,14 @@ plugins {
     id("io.micronaut.application") version "4.6.1"
     id("com.gradleup.shadow") version "8.3.9"
     id("io.micronaut.aot") version "4.6.1"
+    id("checkstyle")
+}
+
+checkstyle {
+    toolVersion = "10.12.5"
+    configFile = file("${rootDir}/config/checkstyle/checkstyle.xml")
+    isIgnoreFailures = false
+    maxWarnings = 0
 }
 
 version = "0.1"
