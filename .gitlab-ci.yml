@@ -5,9 +5,8 @@ stages:
 variables:
   MICRONAUT_GRADLE_PROPERTIES: "gradle.properties"
 
-validate-migrations:
+test_build:
   stage: test
-  before_script:
   script:
     - echo "Начало теста билда"
     - chmod +x gradlew
