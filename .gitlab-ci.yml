@@ -1,6 +1,7 @@
 stages:
   - validate
   - test
+  - func
 
 variables:
   MICRONAUT_GRADLE_PROPERTIES: "gradle.properties"
@@ -24,6 +25,23 @@ lint:
     - chmod +x gradlew
     - ./gradlew checkstyleMain checkstyleTest
     - echo "Конец теста синтаксиса"
+  allow_failure: true
+
+function_secret:
+  before_script:
+    - export JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64 && export PATH=$JAVA_HOME/bin:$PATH
+  stage: func
+  script:
+    - chmod +x gradlew
+    - grep -rE "(password|secret|token|apiKey)" --include="*.java" --include="*.yml" --include="*.properties" src/ config/ 2>/dev/null | grep -v "// " | grep -v "# "
+  allow_failure: true
+
+function_TODO:
+  before_script:
+    - export JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64 && export PATH=$JAVA_HOME/bin:$PATH
+  stage: func
+  script:
+    - grep -r "TODO" --include="*.java" --include="*.kt" src/main/ 2>/dev/null
   allow_failure: true
 
 #validate-gradle-properties:
