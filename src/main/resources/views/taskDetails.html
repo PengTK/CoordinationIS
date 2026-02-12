@@ -152,6 +152,7 @@
                         <th>Статус</th>
                         <th>Приоритет</th>
                         <th>Исполнитель</th>
+                        <th>Проверяющий</th>
                         <th>Дедлайн</th>
                     </tr>
                     </thead>
@@ -171,6 +172,7 @@
                         <td th:text="${t.taskStatus}"></td>
                         <td th:text="${t.priority}"></td>
                         <td th:text="${t.taskExecutor != null ? t.taskExecutor.name : '—'}"></td>
+                        <td th:text="${t.approver != null ? t.approver.name : '—'}"></td>
                         <td th:text="${t.deadLine != null ? t.deadLine : '—'}"></td>
                     </tr>
                     </tbody>
@@ -306,6 +308,20 @@
                                     th:value="${user.id}"
                                     th:text="${user.name + ' (' + user.email + ')'}"
                                     th:selected="${task.taskExecutor != null && user.id == task.taskExecutor.id}">
+                            </option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="approverId">Утверждающий</label>
+                        <select id="approverId" name="approverId"
+                                th:disabled="${!canEdit}"
+                                th:style="${!canEdit} ? 'background-color: #1a1a1a; color: #e0e0e0; border-color: #333;' : ''">
+                            <option value="" th:selected="${task.approver == null}">— Не назначен —</option>
+                            <option th:each="user : ${allUsers}"
+                                    th:value="${user.id}"
+                                    th:text="${user.name + ' (' + user.email + ')'}"
+                                    th:selected="${task.approver != null && user.id == task.approver.id}">
                             </option>
                         </select>
                     </div>

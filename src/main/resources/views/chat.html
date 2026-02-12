@@ -113,9 +113,9 @@
 
             <div class="messages-list" id="messagesList">
                 <div th:each="message : ${messages}" class="message"
-                     th:classappend="${message.author.id == currentUser.id} ? 'own' : 'other'">
+                     th:classappend="${message.authorId == currentUser.id} ? 'own' : 'other'">
                     <div class="message-header">
-                        <span class="message-author" th:text="${message.author.name}"></span>
+                        <span class="message-author" th:text="${message.authorName}"></span>
                         <span class="message-time" th:text="${#temporals.format(message.createdAt, 'HH:mm')}"></span>
                     </div>
                     <div class="message-content" th:text="${message.content}"></div>
@@ -138,7 +138,8 @@
                 <div class="participant-role" th:text="${participant.isAdmin ? 'Администратор' : 'Участник'}"></div>
             </div>
 
-            <div th:if="${chat.project != null}" style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid #222;">
+            <div th:if="${chat.project != null}"
+                 style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid #222;">
                 <h4 style="color: #e0e0e0; margin: 0 0 0.5rem 0;">Проект</h4>
                 <a th:href="@{/projects/{id}(id=${chat.project.id})}"
                    style="color: #00bfff; text-decoration: none; display: block; padding: 0.5rem; background-color: #1a1a1a; border-radius: 4px;">
@@ -155,22 +156,12 @@
      th:data-user-id="${currentUser.id}"
      style="display: none;"></div>
 
-<script>
-    // Получаем данные из атрибутов
-    const chatData = document.getElementById('chatData');
-    const chatId = parseInt(chatData.dataset.chatId);
-    const currentUserId = parseInt(chatData.dataset.userId);
-
-    console.log('Chat ID:', chatId);
-    console.log('Current User ID:', currentUserId);
-
-    if (isNaN(chatId) || chatId === 0) {
-        alert('Ошибка: не удалось загрузить чат. ID чата: ' + chatId);
-        console.error('Chat ID is invalid:', chatId);
-    }
-
+<script th:inline="javascript">
+    const chatId = /*[[${chat.id}]]*/ 0;
+    const currentUserId = /*[[${currentUser.id}]]*/ 0;
     let lastMessageTime = new Date();
 
+    // Функция отправки сообщения
     async function sendMessage() {
         const input = document.getElementById('messageInput');
         const content = input.value.trim();
@@ -178,14 +169,10 @@
         if (content === '') return;
 
         try {
-            console.log('Отправка сообщения в чат', chatId, ':', content);
-
             const encodedContent = encodeURIComponent(content);
             const response = await fetch(`/chats/${chatId}/message?content=${encodedContent}`, {
                 method: 'POST'
             });
-
-            console.log('Ответ сервера:', response.status, response.ok);
 
             if (response.ok) {
                 input.value = '';
@@ -201,69 +188,103 @@
         }
     }
 
+    // Функция загрузки новых сообщений
     async function loadNewMessages() {
-    if (isNaN(chatId) || chatId === 0) {
-        console.error('Invalid chatId:', chatId);
-        return;
-    }
-
-    try {
-        // Форматируем дату в правильном формате ISO-8601
-        const sinceStr = lastMessageTime.toISOString()
-            .replace('Z', '')  // Убираем 'Z' в конце
-            .slice(0, 19);     // Только до секунд: "2026-02-03T12:14:05"
-
-        console.log('🔄 Запрос новых сообщений с:', sinceStr);
-
-        const response = await fetch(`/chats/${chatId}/messages/since?since=${sinceStr}`);
-
-        if (!response.ok) {
-            const errorText = await response.text();
-            console.error('❌ Ошибка сервера:', errorText);
+        if (isNaN(chatId) || chatId === 0) {
+            console.error('Invalid chatId:', chatId);
             return;
         }
 
-        const newMessages = await response.json();
-        console.log('📥 Получено новых сообщений:', newMessages.length);
+        try {
+            const sinceStr = lastMessageTime.toISOString()
+                .replace('Z', '')
+                .slice(0, 19);
 
-        if (newMessages.length > 0) {
-            const messagesList = document.getElementById('messagesList');
+            const response = await fetch(`/chats/${chatId}/messages/since?since=${sinceStr}`);
 
-            newMessages.forEach(msg => {
-                const messageDiv = document.createElement('div');
-                messageDiv.className = 'message ' + (msg.author.id == currentUserId ? 'own' : 'other');
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error('❌ Ошибка сервера:', errorText);
+                return;
+            }
 
-                messageDiv.innerHTML = `
-                    <div class="message-header">
-                        <span class="message-author">${msg.author.name}</span>
-                        <span class="message-time">${new Date(msg.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
-                    </div>
-                    <div class="message-content">${msg.content}</div>
-                `;
+            const newMessages = await response.json();
 
-                messagesList.appendChild(messageDiv);
-            });
+            if (newMessages.length > 0) {
+                const messagesList = document.getElementById('messagesList');
 
-            messagesList.scrollTop = messagesList.scrollHeight;
-            lastMessageTime = new Date();
+                // Проверяем, находится ли пользователь внизу чата
+                const isAtBottom = messagesList.scrollHeight - messagesList.scrollTop <= messagesList.clientHeight + 10;
+
+                // Добавляем новые сообщения
+                newMessages.forEach(msg => {
+                    if (!msg || !msg.authorId) {
+                        console.warn('Пропущено сообщение без автора:', msg);
+                        return;
+                    }
+
+                    const messageDiv = document.createElement('div');
+                    messageDiv.className = 'message ' + (msg.authorId == currentUserId ? 'own' : 'other');
+
+                    messageDiv.innerHTML = `
+                        <div class="message-header">
+                            <span class="message-author">${msg.authorName || 'Неизвестный автор'}</span>
+                            <span class="message-time">${new Date(msg.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+                        </div>
+                        <div class="message-content">${msg.content || ''}</div>
+                    `;
+
+                    messagesList.appendChild(messageDiv);
+                });
+
+                // Прокручиваем вниз ТОЛЬКО если пользователь был внизу
+                if (isAtBottom) {
+                    messagesList.scrollTop = messagesList.scrollHeight;
+                }
+
+                // Обновляем время последнего сообщения
+                const latestMessage = newMessages[newMessages.length - 1];
+                if (latestMessage && latestMessage.createdAt) {
+                    lastMessageTime = new Date(latestMessage.createdAt);
+                }
+            }
+        } catch (error) {
+            console.error('❌ Ошибка загрузки сообщений:', error);
         }
-    } catch (error) {
-        console.error('❌ Ошибка загрузки сообщений:', error);
     }
-}
 
-
-    setInterval(loadNewMessages, 3000);
-
-    document.getElementById('messageInput').addEventListener('keypress', function(e) {
-        if (e.key === 'Enter' && !e.shiftKey) {
-            e.preventDefault();
-            sendMessage();
+    // Загрузка сообщений при загрузке страницы
+    window.addEventListener('load', () => {
+        // Устанавливаем время последнего сообщения из существующих сообщений
+        const existingMessages = document.querySelectorAll('.messages-list .message');
+        if (existingMessages.length > 0) {
+            // Находим самое новое сообщение
+            const lastMessageElement = existingMessages[existingMessages.length - 1];
+            // Здесь можно попытаться получить время из атрибута или оставить текущее время
         }
+
+        // Прокручиваем вниз
+        const messagesList = document.getElementById('messagesList');
+        if (messagesList) {
+            messagesList.scrollTop = messagesList.scrollHeight;
+        }
+
+        // Запускаем автоматическую загрузку
+        setInterval(loadNewMessages, 3000);
     });
 
-    // Загружаем сообщения при загрузке страницы
-    window.addEventListener('load', loadNewMessages);
+    // Отправка по Enter
+    document.addEventListener('DOMContentLoaded', function() {
+        const messageInput = document.getElementById('messageInput');
+        if (messageInput) {
+            messageInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    sendMessage();
+                }
+            });
+        }
+    });
 </script>
 </body>
 </html>

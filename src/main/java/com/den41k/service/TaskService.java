@@ -56,6 +56,14 @@ public class TaskService {
         taskRepository.clearExecutorReferences(userId);
     }
 
+    public void clearApprover(Long userId) {
+        List<Task> tasks = taskRepository.findByApproverId(userId);
+        for (Task task : tasks) {
+            task.setApprover(null);
+            taskRepository.merge(task);
+        }
+    }
+
     public List<Task> findByProjectIdWithFilters(Long projectId, String search, String status, String priority, String executor) {
         List<Task> tasks = taskRepository.findByProjectId(projectId);
 
@@ -112,4 +120,8 @@ public class TaskService {
         return taskRepository.countByProjectId(projectId);
     }
 
+    @Transactional(readOnly = true)
+    public List<Task> findByApproverId(Long userId) {
+        return taskRepository.findByApproverId(userId);
+    }
 }

@@ -27,4 +27,7 @@ public interface ChatRepository extends JpaRepository<Chat, Long> {
     
     @Query("SELECT COUNT(m) FROM Message m WHERE m.chat.id = :chatId AND m.createdAt > :since")
     long countUnreadMessages(@Parameter("chatId") Long chatId, @Parameter("since") java.time.LocalDateTime since);
+
+    @Query("DELETE FROM Chat c WHERE c.creator.id = :userId")
+    void deleteByUserId(@Parameter("userId") Long userId);
 }

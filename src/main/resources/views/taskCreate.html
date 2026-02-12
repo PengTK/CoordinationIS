@@ -47,6 +47,7 @@
 <main style="max-width: 1200px; margin: 0 auto; padding: 0 2rem;">
 
     <div class="task-create-layout">
+        <!-- Левая часть: проект + задачи -->
         <div class="project-preview" style="text-align: left">
             <h2 th:text="${project.title}">Название проекта</h2>
             <p><strong>Описание:</strong> <span th:text="${project.description}">Описание</span></p>
@@ -87,6 +88,7 @@
             </table>
         </div>
 
+        <!-- Правая часть: форма -->
         <div class="task-form-panel">
             <form method="post" th:action="@{/projects/{projectId}/task/create(projectId=${project.id})}">
                 <div class="form-group">
@@ -133,6 +135,21 @@
                                 th:text="${user.name + ' (' + user.email + ')'}">
                         </option>
                     </select>
+                </div>
+
+                <!-- НОВОЕ ПОЛЕ: Утверждающий -->
+                <div class="form-group">
+                    <label for="approverId">Утверждающий</label>
+                    <select id="approverId" name="approverId">
+                        <option value="">— Не назначен —</option>
+                        <option th:each="user : ${allUsers}"
+                                th:value="${user.id}"
+                                th:text="${user.name + ' (' + user.email + ')'}">
+                        </option>
+                    </select>
+                    <small style="color: #888; display: block; margin-top: 0.25rem;">
+                        Пользователь, который будет утверждать выполнение задачи
+                    </small>
                 </div>
 
                 <button type="submit" class="submit-button" style="width: 100%;">Создать задачу</button>

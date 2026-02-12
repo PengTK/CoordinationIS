@@ -354,6 +354,7 @@
                     <th>Статус</th>
                     <th>Приоритет</th>
                     <th>Исполнитель</th>
+                    <th>Утверждающий</th>
                     <th>Дедлайн</th>
                     <th>Комментарии</th>
                     <th>Действия</th>
@@ -366,6 +367,7 @@
                     <td th:text="${task.taskStatus}"></td>
                     <td th:text="${task.priority}"></td>
                     <td th:text="${task.taskExecutor != null ? task.taskExecutor.name : '—'}"></td>
+                    <td th:text="${task.approver != null ? task.approver.name : '—'}"></td>
                     <td th:text="${task.deadLine != null ? task.deadLine : '—'}"></td>
                     <td>
                         <span th:text="${commentCounts.get(task.id)} ?: 0"></span>
@@ -373,11 +375,11 @@
                               th:text="${commentCounts.get(task.id)}"></span>
                     </td>
                     <td>
-                        <a th:href="@{/projects/{projectId}/task/{taskId}(projectId=${project.id}, taskId=${task.id})}"
-                           class="cta-button"
-                           style="display: block; text-align: center; padding: 0.5rem;">
-                            Просмотр
-                        </a>
+                        <form th:action="@{/projects/{projectId}/task/{taskId}(projectId=${project.id}, taskId=${task.id})}" method="get">
+                            <button type="submit" class="cta-button" style="padding: 0.5rem 1rem; font-size: 0.9rem;">
+                                Просмотр
+                            </button>
+                        </form>
                     </td>
                 </tr>
                 </tbody>

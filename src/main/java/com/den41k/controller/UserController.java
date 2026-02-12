@@ -2,6 +2,9 @@ package com.den41k.controller;
 
 import com.den41k.model.Role;
 import com.den41k.model.User;
+import com.den41k.repository.ChatParticipantRepository;
+import com.den41k.repository.ChatRepository;
+import com.den41k.repository.MessageRepository;
 import com.den41k.service.*;
 import io.micronaut.core.annotation.Nullable;
 import io.micronaut.http.HttpResponse;
@@ -10,6 +13,7 @@ import io.micronaut.http.annotation.*;
 import io.micronaut.session.Session;
 import io.micronaut.transaction.annotation.Transactional;
 import io.micronaut.views.View;
+import jakarta.inject.Inject;
 import org.mindrot.jbcrypt.BCrypt;
 
 import java.net.URI;
@@ -23,7 +27,16 @@ public class UserController {
     private final RoleService roleService;
     private final ProjectService projectService;
     private final TaskService taskService;
-    private final CommentService commentService;  // ← добавили зависимость
+    private final CommentService commentService;
+
+    @Inject
+    ChatParticipantRepository chatParticipantRepository;
+
+    @Inject
+    ChatRepository chatRepository;
+
+    @Inject
+    MessageRepository messageRepository;
 
     public UserController(UserService userService,
                           RoleService roleService,
@@ -140,12 +153,17 @@ public class UserController {
     @Post(value = "/delete/{id}", consumes = MediaType.APPLICATION_FORM_URLENCODED)
     @Transactional
     public HttpResponse<?> deleteUser(Long id) {
+        chatParticipantRepository.deleteByUserId(id);
+        chatRepository.deleteByUserId(id);
+        messageRepository.deleteByUserId(id);
+
         commentService.clearCommentAuthor(id);
         projectService.clearProjectCreator(id);
         taskService.clearTaskCreator(id);
         taskService.clearTaskExecutor(id);
+        taskService.clearApprover(id);
 
-        userService.deleteById(id);  // Теперь удалится
+        userService.deleteById(id);
 
         return HttpResponse.redirect(URI.create("/admin/users"));
     }

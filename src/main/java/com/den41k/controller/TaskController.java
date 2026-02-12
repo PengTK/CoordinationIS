@@ -104,24 +104,33 @@ public class TaskController {
                 Long executorId = Long.parseLong(executorIdStr);
                 executor = userService.findById(executorId).orElse(null);
             } catch (NumberFormatException e) {
-                }
+                // Игнорируем ошибку
+            }
         }
 
-        Task task = new Task();
-        task.setTitle(title);
-        task.setDescription(description);
-        task.setTaskStatus(status);
-        task.setPriority(priority);
-        task.setProject(project);
-        task.setTaskCreator(currentUser.get());
-        task.setTaskExecutor(executor);
-        LocalDateTime now = LocalDateTime.now();
-        task.setCreatedAt(now);
-        task.setUpdatedAt(now);
-
-        if (deadLineStr != null && !deadLineStr.isEmpty()) {
-            task.setDeadLine(LocalDate.parse(deadLineStr));
+        // НОВОЕ: Парсинг утверждающего
+        User approver = null;
+        String approverIdStr = formData.get("approverId");
+        if (approverIdStr != null && !approverIdStr.isEmpty()) {
+            try {
+                Long approverId = Long.parseLong(approverIdStr);
+                approver = userService.findById(approverId).orElse(null);
+            } catch (NumberFormatException e) {
+                // Игнорируем ошибку
+            }
         }
+
+        Task task = new Task(
+                title,
+                description,
+                status,
+                priority,
+                executor,
+                currentUser.get(),
+                approver,
+                deadLineStr != null && !deadLineStr.isEmpty() ? LocalDate.parse(deadLineStr) : null,
+                project
+        );
 
         taskService.saveTask(task);
         return HttpResponse.redirect(URI.create("/projects/" + projectId));
@@ -129,38 +138,59 @@ public class TaskController {
 
     @Get("/{taskId}")
     @View("taskDetails")
+    @Transactional(readOnly = true)  // ← Ключевое улучшение: транзакция для ленивой загрузки
     public Map<String, Object> getTaskDetails(Long projectId, Long taskId, Session session) {
         Map<String, Object> model = new HashMap<>();
 
+        // 1. Проверка авторизации
         String email = session.get("email", String.class).orElse(null);
         if (email == null) {
-            return Map.of("error", "Доступ запрещён");
+            model.put("redirect", "/auth");
+            model.put("error", "Требуется авторизация");
+            return model;
         }
 
+        // 2. Загрузка проекта с создателем (чтобы избежать LazyInitializationException)
         Optional<Project> projectOpt = projectService.findById(projectId);
         if (projectOpt.isEmpty()) {
+            model.put("redirect", "/projects");
             model.put("error", "Проект не найден");
             return model;
         }
+        Project project = projectOpt.get();
 
+        // 3. Загрузка задачи со всеми связями
         Optional<Task> taskOpt = taskService.findById(taskId);
-        if (taskOpt.isEmpty()) {
-            model.put("error", "Задача не найдена");
+        if (taskOpt.isEmpty() || !taskOpt.get().getProject().getId().equals(projectId)) {
+            model.put("redirect", "/projects/" + projectId);
+            model.put("error", "Задача не найдена или не принадлежит проекту");
             return model;
         }
-
-        Project project = projectOpt.get();
         Task task = taskOpt.get();
+
+        // 4. Загрузка всех задач проекта для навигации
         List<Task> tasks = taskService.findByProjectId(projectId);
+
+        // 5. Загрузка всех пользователей для выпадающих списков
         List<User> allUsers = userService.getAllUsers();
+
+        // 6. Загрузка комментариев с авторами
         List<Comment> comments = commentService.getCommentsByTaskId(taskId);
-        long commentCount = commentService.countCommentsByTaskId(taskId);
+        long commentCount = comments.size();
 
-        Optional<User> currentUser = userService.findByEmail(email);
-        boolean canEdit = currentUser.isPresent() &&
-                (currentUser.get().getRole().getName().equals("ADMIN") ||
-                        currentUser.get().getId().equals(task.getTaskCreator().getId()));
+        // 7. Проверка прав на редактирование
+        Optional<User> currentUserOpt = userService.findByEmail(email);
+        if (currentUserOpt.isEmpty()) {
+            model.put("redirect", "/auth");
+            model.put("error", "Пользователь не найден");
+            return model;
+        }
+        User currentUser = currentUserOpt.get();
 
+        boolean canEdit = currentUser.getRole().getName().equals("ADMIN") ||
+                currentUser.getId().equals(task.getTaskCreator().getId());
+
+        // 8. Формирование модели
         model.put("email", email);
         model.put("project", project);
         model.put("task", task);
@@ -169,7 +199,7 @@ public class TaskController {
         model.put("canEdit", canEdit);
         model.put("comments", comments);
         model.put("commentCount", commentCount);
-        model.put("currentUser", currentUser.get());
+        model.put("currentUser", currentUser);
 
         return model;
     }
@@ -204,6 +234,15 @@ public class TaskController {
                 task.setTaskExecutor(executor);
             } else {
                 task.setTaskExecutor(null);
+            }
+
+            String approverIdStr = formData.get("approverId");
+            if (approverIdStr != null && !approverIdStr.trim().isEmpty()) {
+                Long approverId = Long.parseLong(approverIdStr);
+                User approver = userService.findById(approverId).orElse(null);
+                task.setApprover(approver);
+            } else {
+                task.setApprover(null);
             }
 
             task.setUpdatedAt(LocalDateTime.now());

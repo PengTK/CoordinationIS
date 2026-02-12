@@ -1,10 +1,12 @@
 package com.den41k.model;
 
+import io.micronaut.serde.annotation.Serdeable;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "comments")
+@Serdeable
 public class Comment {
 
     @Id

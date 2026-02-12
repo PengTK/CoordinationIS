@@ -1,6 +1,8 @@
 package com.den41k.model;
 
+import io.micronaut.core.annotation.Introspected;
 import io.micronaut.data.annotation.MappedEntity;
+import io.micronaut.serde.annotation.Serdeable;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
@@ -8,6 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
+@Serdeable
 @Table(name = "chats")
 public class Chat {
 

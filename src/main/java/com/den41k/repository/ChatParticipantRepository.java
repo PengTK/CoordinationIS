@@ -23,4 +23,7 @@ public interface ChatParticipantRepository extends JpaRepository<ChatParticipant
     
     @Query("SELECT COUNT(cp) FROM ChatParticipant cp WHERE cp.chat.id = :chatId")
     long countByChatId(@Parameter("chatId") Long chatId);
+    
+    @Query("DELETE FROM ChatParticipant cp WHERE cp.user.id = :userId")
+    void deleteByUserId(@Parameter("userId") Long userId);
 }

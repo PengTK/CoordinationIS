@@ -1,5 +1,6 @@
 package com.den41k.controller;
 
+import com.den41k.dto.MessageDto;
 import com.den41k.model.*;
 import com.den41k.repository.ChatRepository;
 import com.den41k.service.ChatService;
@@ -12,6 +13,7 @@ import io.micronaut.session.Session;
 import io.micronaut.views.View;
 
 import java.net.URI;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -155,8 +157,7 @@ public class ChatController {
         
         return HttpResponse.redirect(URI.create("/chats/" + chat.getId()));
     }
-    
-    // Открыть чат
+
     @Get("/{chatId}")
     @View("chat")
     public Map<String, Object> viewChat(Long chatId, Session session) {
@@ -176,7 +177,7 @@ public class ChatController {
 
         User user = currentUser.get();
 
-        // Проверяем, что чат существует
+        // Проверяем, что чат существует (используем оригинальную сущность Chat)
         Optional<Chat> chatOpt = chatService.findById(chatId);
         if (chatOpt.isEmpty()) {
             model.put("error", "Чат не найден");
@@ -194,8 +195,8 @@ public class ChatController {
             return model;
         }
 
-        // Получаем последние 50 сообщений
-        List<Message> messages = chatService.getChatMessages(chatId, 50);
+        // Получаем последние 50 сообщений (используем DTO)
+        List<MessageDto> messages = chatService.getChatMessages(chatId, 50);
         Collections.reverse(messages); // Старые сообщения сверху
 
         // Получаем участников чата
@@ -206,15 +207,16 @@ public class ChatController {
 
         model.put("email", email);
         model.put("currentUser", user);
-        model.put("chat", chat);
-        model.put("messages", messages);
+        model.put("chat", chat);          // Оригинальный объект Chat
+        model.put("messages", messages);  // Список MessageDto
         model.put("participants", participants);
 
         return model;
     }
 
     @Get("/{chatId}/messages/since")
-    public List<Message> getNewMessages(@PathVariable Long chatId, @QueryValue("since") String sinceStr, Session session) {
+    public List<MessageDto> getNewMessages(@PathVariable Long chatId, @QueryValue("since") String sinceStr, Session session) {
+        // Проверка сессии
         String email = session.get("email", String.class).orElse(null);
         if (email == null) {
             return Collections.emptyList();
@@ -226,15 +228,10 @@ public class ChatController {
         }
 
         try {
-            // Создаём форматтер, который не требует миллисекунд
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");
-            java.time.LocalDateTime since = java.time.LocalDateTime.parse(sinceStr, formatter);
+            LocalDateTime since = LocalDateTime.parse(sinceStr, formatter);
 
-            List<Message> messages = chatService.getChatMessages(chatId, 100);
-
-            return messages.stream()
-                    .filter(m -> m.getCreatedAt().isAfter(since))
-                    .collect(Collectors.toList());
+            return chatService.getNewMessagesSince(chatId, since);
         } catch (Exception e) {
             System.err.println("Ошибка в getNewMessages: " + e.getMessage());
             e.printStackTrace();
@@ -242,7 +239,7 @@ public class ChatController {
         }
     }
 
-    @Post("/{chatId}/message")
+    @Post(value = "/{chatId}/message", consumes = MediaType.APPLICATION_FORM_URLENCODED)
     public HttpResponse<?> sendMessage(Long chatId, @QueryValue("content") String content, Session session) {
         String email = session.get("email", String.class).orElse(null);
         if (email == null) {

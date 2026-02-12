@@ -1,5 +1,6 @@
 package com.den41k.model;
 
+import io.micronaut.serde.annotation.Serdeable;
 import jakarta.persistence.*;
 
 import java.time.LocalDate;
@@ -7,6 +8,7 @@ import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "tasks")
+@Serdeable
 public class Task {
 
     @Id
@@ -28,6 +30,10 @@ public class Task {
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(nullable = true)
     private User taskExecutor;
+
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(nullable = true)
+    private User approver;
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(nullable = true)
@@ -134,18 +140,29 @@ public class Task {
         this.project = project;
     }
 
-    public Task(String title, String description, TaskStatus taskStatus, Priority priority, User taskExecutor, User taskCreator, LocalDate deadLine, Project project) {
+    public User getApprover() {
+        return approver;
+    }
+
+    public void setApprover(User approver) {
+        this.approver = approver;
+    }
+
+    public Task(String title, String description, TaskStatus taskStatus, Priority priority,
+                User taskExecutor, User taskCreator, User approver, LocalDate deadLine, Project project) {
         this.title = title;
         this.description = description;
         this.taskStatus = taskStatus;
         this.priority = priority;
         this.taskExecutor = taskExecutor;
         this.taskCreator = taskCreator;
+        this.approver = approver;
         this.createdAt = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();
         this.deadLine = deadLine;
         this.project = project;
     }
+
 
     public Task() {
     }

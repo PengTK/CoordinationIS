@@ -1,5 +1,6 @@
 package com.den41k.service;
 
+import com.den41k.dto.MessageDto;
 import com.den41k.model.*;
 import com.den41k.repository.ChatParticipantRepository;
 import com.den41k.repository.ChatRepository;
@@ -132,11 +133,6 @@ public class ChatService {
         return message;
     }
     
-    // Получить последние сообщения чата
-    public List<Message> getChatMessages(Long chatId, int limit) {
-        return messageRepository.findLastMessages(chatId, limit);
-    }
-    
     // Получить участников чата
     public List<ChatParticipant> getChatParticipants(Long chatId) {
         return chatParticipantRepository.findByChatId(chatId);
@@ -178,5 +174,41 @@ public class ChatService {
     @Transactional
     public Optional<Chat> findById(Long id){
         return chatRepository.findById(id);
+    }
+
+    @Transactional
+    public List<MessageDto> getChatMessages(Long chatId, int limit) {
+        List<Message> messages = messageRepository.findAllByChatId(chatId);
+
+        // Берём последние N сообщений, но сохраняем хронологический порядок
+        int fromIndex = Math.max(0, messages.size() - limit);
+        List<Message> lastMessages = messages.subList(fromIndex, messages.size());
+
+        return lastMessages.stream()
+                .map(m -> new MessageDto(
+                        m.getId(),
+                        m.getChat().getId(),
+                        m.getAuthor().getId(),
+                        m.getAuthor().getName(),
+                        m.getContent(),
+                        m.getCreatedAt()
+                ))
+                .collect(Collectors.toList());
+    }
+
+    @Transactional
+    public List<MessageDto> getNewMessagesSince(Long chatId, LocalDateTime since) {
+        List<Message> messages = messageRepository.findMessagesSince(chatId, since);
+
+        return messages.stream()
+                .map(m -> new MessageDto(
+                        m.getId(),
+                        m.getChat().getId(),
+                        m.getAuthor().getId(),
+                        m.getAuthor().getName(),
+                        m.getContent(),
+                        m.getCreatedAt()
+                ))
+                .collect(Collectors.toList());
     }
 }

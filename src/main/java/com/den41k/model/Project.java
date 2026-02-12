@@ -1,5 +1,6 @@
 package com.den41k.model;
 
+import io.micronaut.serde.annotation.Serdeable;
 import jakarta.persistence.*;
 
 import java.time.LocalDate;
@@ -7,6 +8,7 @@ import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "projects")
+@Serdeable
 public class Project {
 
     @Id
