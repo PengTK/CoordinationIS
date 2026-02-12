@@ -72,6 +72,18 @@
             </select>
         </div>
 
+        <div class="form-group">
+            <label for="chatPermission">Права на чаты *</label>
+            <select id="chatPermission" name="chatPermission" required>
+                <option value="">— Выберите —</option>
+                <option th:each="p : ${permissions}"
+                        th:value="${p}"
+                        th:text="${p.name}"
+                        th:selected="${p == role.chatPermission}">
+                </option>
+            </select>
+        </div>
+
         <button type="submit" class="submit-button">Сохранить роль</button>
     </form>
 </main>

@@ -57,6 +57,7 @@ public class RoleController {
             role.setTaskPermission(parsePermission(formData.get("taskPermission")));
             role.setUserPermission(parsePermission(formData.get("userPermission")));
             role.setRolePermission(parsePermission(formData.get("rolePermission")));
+            role.setChatPermission(parsePermission(formData.get("chatPermission"))); // ДОБАВЛЕНО
 
             roleService.save(role);
             return HttpResponse.redirect(URI.create("/admin/roles"));
@@ -79,6 +80,7 @@ public class RoleController {
             role.setTaskPermission(parsePermission(formData.get("taskPermission")));
             role.setUserPermission(parsePermission(formData.get("userPermission")));
             role.setRolePermission(parsePermission(formData.get("rolePermission")));
+            role.setChatPermission(parsePermission(formData.get("chatPermission"))); // ДОБАВЛЕНО
 
             roleService.save(role);
             return HttpResponse.redirect(URI.create("/admin/roles"));

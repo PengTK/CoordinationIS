@@ -95,6 +95,17 @@
                 </select>
             </div>
 
+            <div class="form-group">
+                <label for="chatPermission">Права на управление чатами *</label>
+                <select id="chatPermission" name="chatPermission" required>
+                    <option value="">— Выберите —</option>
+                    <option th:each="p : ${permissions}"
+                            th:value="${p}"
+                            th:text="${p.name}">
+                    </option>
+                </select>
+            </div>
+
             <button type="submit" class="submit-button">Создать роль</button>
         </form>
     </div>
@@ -110,6 +121,7 @@
             <th>Задачи</th>
             <th>Пользователи</th>
             <th>Роли</th>
+            <th>Чаты</th> <!-- НОВАЯ КОЛОНКА -->
             <th>Пользователей</th>
             <th>Действия</th>
         </tr>
@@ -123,12 +135,13 @@
                 <span th:if="${roleData.inUse}"
                       class="user-count-badge"
                       th:text="${roleData.userCount}">
-                </span>
+            </span>
             </td>
             <td th:text="${roleData.role.projectPermission.name}"></td>
             <td th:text="${roleData.role.taskPermission.name}"></td>
             <td th:text="${roleData.role.userPermission.name}"></td>
             <td th:text="${roleData.role.rolePermission.name}"></td>
+            <td th:text="${roleData.role.chatPermission.name}"></td> <!-- НОВАЯ ЯЧЕЙКА -->
             <td>
                 <span th:text="${roleData.userCount}"></span>
                 <span th:if="${roleData.inUse}" style="color: #ffaa33; margin-left: 0.25rem;">●</span>
@@ -152,8 +165,8 @@
 
                 <span th:if="${roleData.inUse}"
                       class="cannot-delete">
-                    Нельзя удалить
-                </span>
+                Нельзя удалить
+            </span>
             </td>
         </tr>
         </tbody>

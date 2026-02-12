@@ -36,31 +36,6 @@ public class ChatService {
         return chatRepository.findByUserId(userId);
     }
     
-    // Создать личный чат
-    @Transactional
-    public Chat createPrivateChat(Long userId1, Long userId2) {
-        // Проверяем, существует ли уже чат между этими пользователями
-        Optional<Chat> existingChat = chatRepository.findPrivateChatBetween(userId1, userId2);
-        if (existingChat.isPresent()) {
-            return existingChat.get();
-        }
-        
-        User user1 = userService.findById(userId1).orElseThrow();
-        User user2 = userService.findById(userId2).orElseThrow();
-        
-        Chat chat = new Chat(ChatType.PRIVATE, user1);
-        chatRepository.save(chat);
-        
-        // Добавляем участников
-        ChatParticipant participant1 = new ChatParticipant(chat, user1, true);
-        ChatParticipant participant2 = new ChatParticipant(chat, user2, false);
-        
-        chatParticipantRepository.save(participant1);
-        chatParticipantRepository.save(participant2);
-        
-        return chat;
-    }
-    
     // Создать групповой чат
     @Transactional
     public Chat createGroupChat(String name, Long creatorId, List<Long> participantIds) {
@@ -101,36 +76,6 @@ public class ChatService {
         chatParticipantRepository.save(creatorParticipant);
         
         return chat;
-    }
-    
-    // Отправить сообщение
-    @Transactional
-    public Message sendMessage(Long chatId, Long authorId, String content) {
-        Chat chat = chatRepository.findById(chatId)
-                .orElseThrow(() -> new RuntimeException("Чат не найден"));
-
-        User author = userService.findById(authorId)
-                .orElseThrow(() -> new RuntimeException("Пользователь не найден"));
-
-        // Проверяем, что автор является участником чата
-        Optional<ChatParticipant> participant = chatParticipantRepository.findByChatIdAndUserId(chatId, authorId);
-        if (participant.isEmpty()) {
-            throw new RuntimeException("Пользователь не является участником этого чата");
-        }
-
-        System.out.println("Создание сообщения для чата " + chatId);
-        Message message = new Message(chat, author, content);
-        message = messageRepository.save(message);
-
-        System.out.println("Сообщение сохранено с ID: " + message.getId());
-
-        // Обновляем время обновления чата
-        chat.setUpdatedAt(LocalDateTime.now());
-        chatRepository.save(chat);
-
-        System.out.println("Чат обновлён");
-
-        return message;
     }
     
     // Получить участников чата
@@ -210,5 +155,80 @@ public class ChatService {
                         m.getCreatedAt()
                 ))
                 .collect(Collectors.toList());
+    }
+
+    public boolean canAccessChats(User user) {
+        Role role = user.getRole();
+        return role != null &&
+                (role.getChatPermission() == RolePermission.ALL_PERMS ||
+                        role.getChatPermission() == RolePermission.READ_ONLY);
+    }
+
+    public boolean canCreateChats(User user) {
+        Role role = user.getRole();
+        return role != null && role.getChatPermission() == RolePermission.ALL_PERMS;
+    }
+
+    public boolean canSendMessage(User user, Chat chat) {
+        // Проверяем базовый доступ к чатам
+        if (!canAccessChats(user)) {
+            return false;
+        }
+
+        // Проверяем, что пользователь является участником чата
+        return chat.getParticipants().stream()
+                .anyMatch(p -> p.getUser().getId().equals(user.getId()));
+    }
+
+    // Обновленный метод создания личного чата
+    @Transactional
+    public Chat createPrivateChat(Long userId1, Long userId2) {
+        User user1 = userService.findById(userId1).orElseThrow();
+        User user2 = userService.findById(userId2).orElseThrow();
+
+        // Проверяем права на создание чатов
+        if (!canCreateChats(user1)) {
+            throw new RuntimeException("У вас нет прав на создание чатов");
+        }
+
+        // Проверяем, существует ли уже чат между этими пользователями
+        Optional<Chat> existingChat = chatRepository.findPrivateChatBetween(userId1, userId2);
+        if (existingChat.isPresent()) {
+            return existingChat.get();
+        }
+
+        Chat chat = new Chat(ChatType.PRIVATE, user1);
+        chatRepository.save(chat);
+
+        ChatParticipant participant1 = new ChatParticipant(chat, user1, true);
+        ChatParticipant participant2 = new ChatParticipant(chat, user2, false);
+
+        chatParticipantRepository.save(participant1);
+        chatParticipantRepository.save(participant2);
+
+        return chat;
+    }
+
+    // Обновленный метод отправки сообщения
+    @Transactional
+    public Message sendMessage(Long chatId, Long authorId, String content) {
+        Chat chat = chatRepository.findById(chatId)
+                .orElseThrow(() -> new RuntimeException("Чат не найден"));
+
+        User author = userService.findById(authorId)
+                .orElseThrow(() -> new RuntimeException("Пользователь не найден"));
+
+        // Проверяем права на отправку сообщений
+        if (!canSendMessage(author, chat)) {
+            throw new RuntimeException("У вас нет прав на отправку сообщений в этот чат");
+        }
+
+        Message message = new Message(chat, author, content);
+        message = messageRepository.save(message);
+
+        chat.setUpdatedAt(LocalDateTime.now());
+        chatRepository.save(chat);
+
+        return message;
     }
 }

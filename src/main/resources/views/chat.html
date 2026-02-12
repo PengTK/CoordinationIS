@@ -122,10 +122,15 @@
                 </div>
             </div>
 
-            <div class="message-input">
+            <div class="message-input" th:if="${canSendMessage}">
                 <textarea id="messageInput" rows="2" placeholder="Введите сообщение..."
-                          style="width: 100%;"></textarea>
+              style="width: 100%;"></textarea>
                 <button onclick="sendMessage()" class="cta-button" style="padding: 0.75rem 1.5rem;">Отправить</button>
+            </div>
+
+            <!-- Если нет прав на отправку -->
+            <div th:if="${!canSendMessage}" style="padding: 1rem; background-color: #1a1a1a; border-radius: 4px; color: #888;">
+                У вас нет прав на отправку сообщений в этот чат
             </div>
         </div>
 

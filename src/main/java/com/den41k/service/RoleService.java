@@ -54,4 +54,6 @@ public class RoleService {
     public long countUsersWithRole(Long roleId) {
         return userRepository.countByRoleId(roleId);
     }
+
+
 }

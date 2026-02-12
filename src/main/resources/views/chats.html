@@ -109,9 +109,12 @@
         <div class="chat-sidebar">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
                 <h3 style="margin: 0; color: #e0e0e0;">Мои чаты</h3>
-                <button onclick="openModal('createChatModal')" class="cta-button" style="padding: 0.5rem 1rem; font-size: 0.9rem;">
-                    +
-                </button>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                    <h3 style="margin: 0; color: #e0e0e0;">Мои чаты</h3>
+                    <button th:if="${canCreateChats}" onclick="openModal('createChatModal')" class="cta-button" style="padding: 0.5rem 1rem; font-size: 0.9rem;">
+                        +
+                    </button>
+                </div>
             </div>
 
             <div th:if="${chats.empty}">
@@ -130,8 +133,7 @@
         </div>
     </div>
 
-    <!-- Модальное окно создания чата -->
-    <div id="createChatModal" class="modal">
+    <div id="createChatModal" class="modal" th:if="${canCreateChats}">
         <div class="modal-content">
             <div class="modal-header">
                 <h3 style="margin: 0; color: #e0e0e0;">Создать чат</h3>

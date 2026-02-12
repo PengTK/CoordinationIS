@@ -7,6 +7,7 @@ import com.den41k.service.ChatService;
 import com.den41k.service.ProjectService;
 import com.den41k.service.UserService;
 import io.micronaut.http.HttpResponse;
+import io.micronaut.http.HttpStatus;
 import io.micronaut.http.MediaType;
 import io.micronaut.http.annotation.*;
 import io.micronaut.session.Session;
@@ -31,77 +32,91 @@ public class ChatController {
         this.projectService = projectService;
     }
 
-    // Список всех чатов пользователя
     @Get("/")
     @View("chats")
     public Map<String, Object> listChats(Session session) {
         Map<String, Object> model = new HashMap<>();
-        
+
         String email = session.get("email", String.class).orElse(null);
         if (email == null) {
             model.put("error", "Доступ запрещён");
             return model;
         }
-        
+
         Optional<User> currentUser = userService.findByEmail(email);
         if (currentUser.isEmpty()) {
             model.put("error", "Пользователь не найден");
             return model;
         }
-        
+
         User user = currentUser.get();
-        
-        // Получаем все чаты пользователя
+
+        // Проверяем права доступа к чатам
+        if (!chatService.canAccessChats(user)) {
+            model.put("error", "У вас нет доступа к чатам");
+            return model;
+        }
+
         List<Chat> chats = chatService.getUserChats(user.getId());
-        
-        // Получаем количество непрочитанных сообщений для каждого чата
+
         Map<Long, Long> unreadCounts = new HashMap<>();
         for (Chat chat : chats) {
             unreadCounts.put(chat.getId(), chatService.getUnreadMessagesCount(chat.getId(), user.getId()));
         }
-        
-        // Получаем всех пользователей для создания чатов
-        List<User> allUsers = userService.findAll();
-        
+
+        List<User> allUsers = new ArrayList<>();
+        // Только пользователи с правами на чаты могут создавать чаты
+        if (chatService.canCreateChats(user)) {
+            allUsers = userService.findAll();
+        }
+
         model.put("email", email);
         model.put("currentUser", user);
         model.put("chats", chats);
         model.put("unreadCounts", unreadCounts);
         model.put("allUsers", allUsers);
         model.put("totalUnread", chatService.getTotalUnreadMessages(user.getId()));
-        
+        model.put("canCreateChats", chatService.canCreateChats(user));
+        model.put("canAccessChats", chatService.canAccessChats(user));
+
         return model;
     }
-    
-    // Создать личный чат
+
     @Post(value = "/private", consumes = MediaType.APPLICATION_FORM_URLENCODED)
     public HttpResponse<?> createPrivateChat(@Body Map<String, String> body, Session session) {
         String email = session.get("email", String.class).orElse(null);
         if (email == null) {
             return HttpResponse.unauthorized();
         }
-        
-        Optional<User> currentUser = userService.findByEmail(email);
+
+        Optional<User> currentUser = userService.findByEmail(email); // ИСПРАВЛЕНО
         if (currentUser.isEmpty()) {
             return HttpResponse.badRequest();
         }
-        
-        Long userId1 = currentUser.get().getId();
+
+        User user = currentUser.get();
+
+        // Проверяем права на создание чатов
+        if (!chatService.canCreateChats(user)) {
+            return HttpResponse.status(HttpStatus.FORBIDDEN, "У вас нет прав на создание чатов"); // ИСПРАВЛЕНО
+        }
+
+        Long userId1 = user.getId();
         Long userId2;
-        
+
         try {
             userId2 = Long.parseLong(body.get("userId"));
         } catch (NumberFormatException e) {
             return HttpResponse.badRequest();
         }
-        
+
         // Проверяем, что пользователь не создаёт чат с самим собой
         if (userId1.equals(userId2)) {
             return HttpResponse.badRequest();
         }
-        
+
         Chat chat = chatService.createPrivateChat(userId1, userId2);
-        
+
         return HttpResponse.redirect(URI.create("/chats/" + chat.getId()));
     }
     
@@ -177,7 +192,12 @@ public class ChatController {
 
         User user = currentUser.get();
 
-        // Проверяем, что чат существует (используем оригинальную сущность Chat)
+        // Проверяем права доступа к чатам
+        if (!chatService.canAccessChats(user)) {
+            model.put("error", "У вас нет доступа к чатам");
+            return model;
+        }
+
         Optional<Chat> chatOpt = chatService.findById(chatId);
         if (chatOpt.isEmpty()) {
             model.put("error", "Чат не найден");
@@ -210,6 +230,7 @@ public class ChatController {
         model.put("chat", chat);          // Оригинальный объект Chat
         model.put("messages", messages);  // Список MessageDto
         model.put("participants", participants);
+        model.put("canSendMessage", chatService.canSendMessage(user, chat));
 
         return model;
     }
@@ -251,12 +272,24 @@ public class ChatController {
             return HttpResponse.badRequest("Пользователь не найден");
         }
 
+        User user = currentUser.get();
+
+        // Проверяем права на отправку сообщений
+        Optional<Chat> chatOpt = chatService.findById(chatId);
+        if (chatOpt.isEmpty()) {
+            return HttpResponse.badRequest("Чат не найден");
+        }
+
+        if (!chatService.canSendMessage(user, chatOpt.get())) {
+            return HttpResponse.status(HttpStatus.FORBIDDEN, "У вас нет прав на создание чатов");
+        }
+
         if (content == null || content.trim().isEmpty()) {
             return HttpResponse.badRequest("Сообщение не может быть пустым");
         }
 
         try {
-            chatService.sendMessage(chatId, currentUser.get().getId(), content.trim());
+            chatService.sendMessage(chatId, user.getId(), content.trim());
             return HttpResponse.ok();
         } catch (Exception e) {
             return HttpResponse.badRequest("Ошибка: " + e.getMessage());
