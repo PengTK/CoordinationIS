@@ -32,19 +32,37 @@ public class ProjectController {
 
     @Get
     @View("projects")
-    public Map<String, Object> getAllProjects(Session session) {
-        Map<String, Object> currentUserModel = new HashMap<>();
+    public Map<String, Object> getAllProjects(
+            Session session,
+            @QueryValue(value = "search", defaultValue = "") String search,
+            @QueryValue(value = "status", defaultValue = "") String status,
+            @QueryValue(value = "creator", defaultValue = "") String creatorId) {
+
+        Map<String, Object> model = new HashMap<>();
         String email = session.get("email", String.class).orElse(null);
         if (email != null) {
             Optional<User> currentUser = userService.findByEmail(email);
-            String firstName = currentUser.get().getName();
-            Role role = currentUser.get().getRole();
-            currentUserModel.put("email", email);
-            currentUserModel.put("firstName", firstName);
-            currentUserModel.put("role", role.getName());
-            currentUserModel.put("projects", projectService.getAllProjects());
+            if (currentUser.isPresent()) {
+                String firstName = currentUser.get().getName();
+                Role role = currentUser.get().getRole();
+
+                // Фильтрация и поиск проектов
+                List<Project> projects = projectService.searchProjects(search, status, creatorId);
+
+                // Получаем всех создателей для фильтра
+                List<User> allCreators = projectService.getAllProjectCreators();
+
+                model.put("email", email);
+                model.put("firstName", firstName);
+                model.put("role", role.getName());
+                model.put("projects", projects);
+                model.put("allCreators", allCreators);
+                model.put("search", search);
+                model.put("status", status);
+                model.put("creatorId", creatorId); // Передаём как creatorId
+            }
         }
-        return currentUserModel;
+        return model;
     }
 
     @Get("/create")
@@ -215,6 +233,7 @@ public class ProjectController {
             String title = formData.get("title");
             String description = formData.get("description");
             String deadLineStr = formData.get("deadLine");
+            String projectStatusStr = formData.get("projectStatus");
 
             if (title == null || title.trim().isEmpty()) {
                 return HttpResponse.badRequest().body("Название проекта не может быть пустым");
@@ -225,6 +244,16 @@ public class ProjectController {
 
             if (deadLineStr != null && !deadLineStr.trim().isEmpty()) {
                 project.setDeadLine(LocalDate.parse(deadLineStr));
+            }
+
+            // Установка статуса проекта
+            if (projectStatusStr != null && !projectStatusStr.trim().isEmpty()) {
+                try {
+                    ProjectStatus status = ProjectStatus.valueOf(projectStatusStr);
+                    project.setProjectStatus(status);
+                } catch (IllegalArgumentException e) {
+                    return HttpResponse.badRequest().body("Неверный статус проекта");
+                }
             }
 
             projectService.saveProject(project);

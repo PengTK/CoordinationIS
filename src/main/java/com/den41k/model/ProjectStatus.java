@@ -1,9 +1,8 @@
 package com.den41k.model;
 
 public enum ProjectStatus {
-    PENDING("В обработке"),
-    ACTIVE("В процессе"),
-    PAUSED("На паузе"),
+    PENDING("Ожидает"),
+    IN_PROGRESS("В работе"),
     COMPLETED("Заверщён"),
     CANCELLED("Отменён");
 

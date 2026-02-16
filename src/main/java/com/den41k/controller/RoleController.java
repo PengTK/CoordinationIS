@@ -36,6 +36,8 @@ public class RoleController {
                 roleData.put("role", role);
                 roleData.put("inUse", roleService.isRoleInUse(role.getId()));
                 roleData.put("userCount", roleService.countUsersWithRole(role.getId()));
+                roleData.put("isProtected", "ADMIN".equals(role.getName())); // Только ADMIN защищен от редактирования
+                roleData.put("isDeleteProtected", "ADMIN".equals(role.getName()) || "GUEST".equals(role.getName())); // ADMIN и GUEST защищены от удаления
                 rolesWithUsage.add(roleData);
             }
 
@@ -53,11 +55,15 @@ public class RoleController {
             Role role = new Role();
             role.setName(formData.get("name"));
 
+            if ("ADMIN".equals(role.getName()) || "GUEST".equals(role.getName())) {
+                return HttpResponse.badRequest().body("Нельзя создать роль с именем 'ADMIN' или 'GUEST'");
+            }
+
             role.setProjectPermission(parsePermission(formData.get("projectPermission")));
             role.setTaskPermission(parsePermission(formData.get("taskPermission")));
             role.setUserPermission(parsePermission(formData.get("userPermission")));
             role.setRolePermission(parsePermission(formData.get("rolePermission")));
-            role.setChatPermission(parsePermission(formData.get("chatPermission"))); // ДОБАВЛЕНО
+            role.setChatPermission(parsePermission(formData.get("chatPermission")));
 
             roleService.save(role);
             return HttpResponse.redirect(URI.create("/admin/roles"));
@@ -75,12 +81,16 @@ public class RoleController {
             Role role = roleService.findById(id)
                     .orElseThrow(() -> new RuntimeException("Роль не найдена"));
 
+            if ("ADMIN".equals(role.getName())) {
+                return HttpResponse.badRequest().body("Нельзя редактировать роль 'ADMIN'");
+            }
+
             role.setName(formData.get("name"));
             role.setProjectPermission(parsePermission(formData.get("projectPermission")));
             role.setTaskPermission(parsePermission(formData.get("taskPermission")));
             role.setUserPermission(parsePermission(formData.get("userPermission")));
             role.setRolePermission(parsePermission(formData.get("rolePermission")));
-            role.setChatPermission(parsePermission(formData.get("chatPermission"))); // ДОБАВЛЕНО
+            role.setChatPermission(parsePermission(formData.get("chatPermission")));
 
             roleService.save(role);
             return HttpResponse.redirect(URI.create("/admin/roles"));
@@ -94,6 +104,14 @@ public class RoleController {
     @Transactional
     public HttpResponse<?> deleteRole(Long id) {
         try {
+            Role role = roleService.findById(id)
+                    .orElseThrow(() -> new RuntimeException("Роль не найдена"));
+
+            // Запрет удаления ролей ADMIN и GUEST
+            if ("ADMIN".equals(role.getName()) || "GUEST".equals(role.getName())) {
+                return HttpResponse.badRequest().body("Нельзя удалить системную роль '" + role.getName() + "'");
+            }
+
             if (roleService.isRoleInUse(id)) {
                 long userCount = roleService.countUsersWithRole(id);
                 return HttpResponse.badRequest()
@@ -120,6 +138,11 @@ public class RoleController {
 
         Role role = roleService.findById(id)
                 .orElseThrow(() -> new RuntimeException("Роль не найдена"));
+
+        // Запрет доступа к странице редактирования роли ADMIN (GUEST можно редактировать)
+        if ("ADMIN".equals(role.getName())) {
+            return Map.of("error", "Нельзя редактировать роль 'ADMIN'");
+        }
 
         Map<String, Object> model = new HashMap<>();
         model.put("email", email);

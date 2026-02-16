@@ -27,7 +27,7 @@ dependencies {
     runtimeOnly("ch.qos.logback:logback-classic")
     testImplementation("io.micronaut:micronaut-http-client")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
-
+    testImplementation("io.micronaut.test:micronaut-test-junit5")
     implementation("io.micronaut.views:micronaut-views-thymeleaf")
 
     implementation("io.micronaut.data:micronaut-data-hibernate-jpa")

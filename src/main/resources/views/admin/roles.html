@@ -29,6 +29,20 @@
             font-style: italic;
             font-weight: 500;
         }
+
+        /* Двухколоночный макет */
+        .roles-layout {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        @media (max-width: 900px) {
+            .roles-layout {
+                grid-template-columns: 1fr;
+            }
+        }
     </style>
 </head>
 <body>
@@ -40,137 +54,157 @@
     </div>
 </header>
 
-<main style="text-align: left; max-width: 1000px; margin: 2rem auto;">
+<main style="text-align: left; max-width: 1400px; margin: 2rem auto; padding: 0 1rem;">
+
     <h2>Роли в системе</h2>
 
-    <div class="project-form-container" style="margin-bottom: 2.5rem;">
-        <h2>Создать новую роль</h2>
-        <form method="post" action="/admin/roles">
-            <div class="form-group">
-                <label for="name">Название роли *</label>
-                <input type="text" id="name" name="name" required>
-            </div>
+    <div class="roles-layout">
+        <!-- Левая колонка: таблица ролей -->
+        <div>
+            <h3>Существующие роли</h3>
 
-            <div class="form-group">
-                <label for="projectPermission">Права на проекты *</label>
-                <select id="projectPermission" name="projectPermission" required>
-                    <option value="">— Выберите —</option>
-                    <option th:each="p : ${permissions}"
-                            th:value="${p}"
-                            th:text="${p.name}">
-                    </option>
-                </select>
-            </div>
+            <table class="table">
+                <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Название</th>
+                    <th>Проекты</th>
+                    <th>Задачи</th>
+                    <th>Пользователи</th>
+                    <th>Роли</th>
+                    <th>Чаты</th>
+                    <th>Пользователей</th>
+                    <th>Действия</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="roleData : ${rolesWithUsage}"
+                    th:class="${roleData.inUse} ? 'role-in-use' : ''">
+                    <td th:text="${roleData.role.id}"></td>
+                    <td>
+                        <span th:text="${roleData.role.name}"></span>
+                        <span th:if="${roleData.inUse}"
+                              class="user-count-badge"
+                              th:text="${roleData.userCount}">
+                        </span>
+                    </td>
+                    <td th:text="${roleData.role.projectPermission.name}"></td>
+                    <td th:text="${roleData.role.taskPermission.name}"></td>
+                    <td th:text="${roleData.role.userPermission.name}"></td>
+                    <td th:text="${roleData.role.rolePermission.name}"></td>
+                    <td th:text="${roleData.role.chatPermission.name}"></td>
+                    <td>
+                        <span th:text="${roleData.userCount}"></span>
+                        <span th:if="${roleData.inUse}" style="color: #ffaa33; margin-left: 0.25rem;">●</span>
+                    </td>
+                    <td>
+                        <a th:if="${!roleData.isProtected}"
+                           th:href="@{/admin/roles/edit/{id}(id=${roleData.role.id})}"
+                           style="color: #00bfff; text-decoration: none; margin-right: 1rem;">
+                            Редактировать
+                        </a>
 
-            <div class="form-group">
-                <label for="taskPermission">Права на задачи *</label>
-                <select id="taskPermission" name="taskPermission" required>
-                    <option value="">— Выберите —</option>
-                    <option th:each="p : ${permissions}"
-                            th:value="${p}"
-                            th:text="${p.name}">
-                    </option>
-                </select>
-            </div>
+                        <span th:if="${roleData.isProtected}"
+                              style="color: #888; font-style: italic;">
+                            Защищено
+                        </span>
 
-            <div class="form-group">
-                <label for="userPermission">Права на управление пользователями *</label>
-                <select id="userPermission" name="userPermission" required>
-                    <option value="">— Выберите —</option>
-                    <option th:each="p : ${permissions}"
-                            th:value="${p}"
-                            th:text="${p.name}">
-                    </option>
-                </select>
-            </div>
+                        <form th:if="${!roleData.inUse && !roleData.isDeleteProtected}"
+                              th:action="@{/admin/roles/delete/{id}(id=${roleData.role.id})}"
+                              method="post"
+                              style="display:inline;">
+                            <button type="submit"
+                                    onclick="return confirm('Удалить роль?')"
+                                    style="color: #ff4d4d; background: none; border: none; cursor: pointer; font-weight: 600;">
+                                Удалить
+                            </button>
+                        </form>
 
-            <div class="form-group">
-                <label for="rolePermission">Права на управление ролями *</label>
-                <select id="rolePermission" name="rolePermission" required>
-                    <option value="">— Выберите —</option>
-                    <option th:each="p : ${permissions}"
-                            th:value="${p}"
-                            th:text="${p.name}">
-                    </option>
-                </select>
-            </div>
+                        <span th:if="${roleData.inUse && !roleData.isDeleteProtected}"
+                              class="cannot-delete">
+                            Нельзя удалить
+                        </span>
 
-            <div class="form-group">
-                <label for="chatPermission">Права на управление чатами *</label>
-                <select id="chatPermission" name="chatPermission" required>
-                    <option value="">— Выберите —</option>
-                    <option th:each="p : ${permissions}"
-                            th:value="${p}"
-                            th:text="${p.name}">
-                    </option>
-                </select>
-            </div>
+                        <span th:if="${roleData.isDeleteProtected}"
+                              style="color: #888; font-style: italic; margin-left: 0.5rem;">
+                            Нельзя удалить
+                        </span>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
 
-            <button type="submit" class="submit-button">Создать роль</button>
-        </form>
-    </div>
+        <!-- Правая колонка: форма создания -->
+        <div>
+            <div class="project-form-container">
+                <h3>Создать новую роль</h3>
+                <form method="post" action="/admin/roles">
+                    <div class="form-group">
+                        <label for="name">Название роли *</label>
+                        <input type="text" id="name" name="name" required>
+                    </div>
 
-    <h3>Существующие роли</h3>
+                    <div class="form-group">
+                        <label for="projectPermission">Права на проекты *</label>
+                        <select id="projectPermission" name="projectPermission" required>
+                            <option value="">— Выберите —</option>
+                            <option th:each="p : ${permissions}"
+                                    th:value="${p}"
+                                    th:text="${p.name}">
+                            </option>
+                        </select>
+                    </div>
 
-    <table class="table">
-        <thead>
-        <tr>
-            <th>ID</th>
-            <th>Название</th>
-            <th>Проекты</th>
-            <th>Задачи</th>
-            <th>Пользователи</th>
-            <th>Роли</th>
-            <th>Чаты</th> <!-- НОВАЯ КОЛОНКА -->
-            <th>Пользователей</th>
-            <th>Действия</th>
-        </tr>
-        </thead>
-        <tbody>
-        <tr th:each="roleData : ${rolesWithUsage}"
-            th:class="${roleData.inUse} ? 'role-in-use' : ''">
-            <td th:text="${roleData.role.id}"></td>
-            <td>
-                <span th:text="${roleData.role.name}"></span>
-                <span th:if="${roleData.inUse}"
-                      class="user-count-badge"
-                      th:text="${roleData.userCount}">
-            </span>
-            </td>
-            <td th:text="${roleData.role.projectPermission.name}"></td>
-            <td th:text="${roleData.role.taskPermission.name}"></td>
-            <td th:text="${roleData.role.userPermission.name}"></td>
-            <td th:text="${roleData.role.rolePermission.name}"></td>
-            <td th:text="${roleData.role.chatPermission.name}"></td> <!-- НОВАЯ ЯЧЕЙКА -->
-            <td>
-                <span th:text="${roleData.userCount}"></span>
-                <span th:if="${roleData.inUse}" style="color: #ffaa33; margin-left: 0.25rem;">●</span>
-            </td>
-            <td>
-                <a th:href="@{/admin/roles/edit/{id}(id=${roleData.role.id})}"
-                   style="color: #00bfff; text-decoration: none; margin-right: 1rem;">
-                    Редактировать
-                </a>
+                    <div class="form-group">
+                        <label for="taskPermission">Права на задачи *</label>
+                        <select id="taskPermission" name="taskPermission" required>
+                            <option value="">— Выберите —</option>
+                            <option th:each="p : ${permissions}"
+                                    th:value="${p}"
+                                    th:text="${p.name}">
+                            </option>
+                        </select>
+                    </div>
 
-                <form th:if="${!roleData.inUse}"
-                      th:action="@{/admin/roles/delete/{id}(id=${roleData.role.id})}"
-                      method="post"
-                      style="display:inline;">
-                    <button type="submit"
-                            onclick="return confirm('Удалить роль?')"
-                            style="color: #ff4d4d; background: none; border: none; cursor: pointer; font-weight: 600;">
-                        Удалить
-                    </button>
+                    <div class="form-group">
+                        <label for="userPermission">Права на управление пользователями *</label>
+                        <select id="userPermission" name="userPermission" required>
+                            <option value="">— Выберите —</option>
+                            <option th:each="p : ${permissions}"
+                                    th:value="${p}"
+                                    th:text="${p.name}">
+                            </option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="rolePermission">Права на управление ролями *</label>
+                        <select id="rolePermission" name="rolePermission" required>
+                            <option value="">— Выберите —</option>
+                            <option th:each="p : ${permissions}"
+                                    th:value="${p}"
+                                    th:text="${p.name}">
+                            </option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="chatPermission">Права на чаты *</label>
+                        <select id="chatPermission" name="chatPermission" required>
+                            <option value="">— Выберите —</option>
+                            <option th:each="p : ${permissions}"
+                                    th:value="${p}"
+                                    th:text="${p.name}">
+                            </option>
+                        </select>
+                    </div>
+
+                    <button type="submit" class="submit-button">Создать роль</button>
                 </form>
-
-                <span th:if="${roleData.inUse}"
-                      class="cannot-delete">
-                Нельзя удалить
-            </span>
-            </td>
-        </tr>
-        </tbody>
-    </table>
+            </div>
+        </div>
+    </div>
 </main>
 </body>
 </html>

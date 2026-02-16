@@ -4,6 +4,48 @@
     <meta charset="UTF-8">
     <title>COORDIS — Вход</title>
     <link rel="stylesheet" th:href="@{/static/css/style.css}">
+    <style>
+        .filters-section {
+            background-color: #151515;
+            border: 1px solid #222;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin: 2rem 0;
+        }
+        .filters-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+        }
+        .filter-group label {
+            margin-bottom: 0.5rem;
+            color: #aaa;
+            font-size: 0.85rem;
+        }
+        .filter-group select,
+        .filter-group input {
+            padding: 0.75rem;
+            background-color: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 4px;
+            color: #e0e0e0;
+        }
+        .filter-actions {
+            display: flex;
+            gap: 1rem;
+            align-items: end;
+        }
+        .stats-info {
+            color: #888;
+            font-size: 0.9rem;
+            margin-top: 1rem;
+        }
+    </style>
 </head>
 <body>
 
@@ -16,7 +58,58 @@
 </header>
 <main>
     <div th:if="${email != null}">
-        <a href="projects/create" class="cta-button">Заказать проект</a>
+        <a href="projects/create" class="cta-button">Создать проект</a>
+
+        <!-- Форма фильтров и поиска -->
+        <div class="filters-section">
+            <h3 style="margin: 0 0 1.5rem 0; color: #e0e0e0;">Фильтры и поиск</h3>
+
+            <!-- ОСНОВНАЯ ФОРМА ДЛЯ ОТПРАВКИ -->
+            <form method="get" class="filters-grid">
+                <div class="filter-group">
+                    <label for="search">Поиск (название, описание)</label>
+                    <input type="text" id="search" name="search" th:value="${search}"
+                           placeholder="Введите текст...">
+                </div>
+
+                <div class="filter-group">
+                    <label for="status">Статус проекта</label>
+                    <select id="status" name="status">
+                        <option value="">Все статусы</option>
+                        <option value="PENDING" th:selected="${status == 'PENDING'}">Ожидает</option>
+                        <option value="IN_PROGRESS" th:selected="${status == 'IN_PROGRESS'}">В работе</option>
+                        <option value="COMPLETED" th:selected="${status == 'COMPLETED'}">Завершён</option>
+                        <option value="CANCELLED" th:selected="${status == 'CANCELLED'}">Отменён</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label for="creator">Создатель проекта</label>
+                    <select id="creator" name="creator">
+                        <option value="">Все создатели</option>
+                        <option th:each="creator : ${allCreators}"
+                                th:value="${creator.id}"
+                                th:text="${creator.name + ' (' + creator.email + ')'}"
+                                th:selected="${creator.id.toString() == creatorId}">
+                        </option>
+                    </select>
+                </div>
+
+                <div class="filter-actions">
+                    <button type="submit" class="cta-button" style="padding: 0.75rem 1.5rem;">
+                        Применить фильтры
+                    </button>
+                    <a href="/projects" class="cta-button" style="padding: 0.75rem 1.5rem; background-color: #333;">
+                        Сбросить
+                    </a>
+                </div>
+            </form>
+
+            <div class="stats-info">
+                Показано <span th:text="${projects.size()}">0</span> проектов
+            </div>
+        </div>
+
         <table class="table table-striped">
             <thead>
             <tr>
@@ -35,10 +128,10 @@
                 <td th:text="${project.id}"></td>
                 <td th:text="${project.title}"></td>
                 <td th:text="${project.description}"></td>
-                <td th:text="${project.projectStatus}"></td>
-                <td th:text="${project.deadLine}"></td>
+                <td th:text="${project.projectStatus.name}"></td>
+                <td th:text="${project.deadLine != null ? project.deadLine : '—'}"></td>
                 <td th:text="${project.projectCreator != null ? project.projectCreator.name : 'Пользователь удалён'}"></td>
-                <td th:text="${project.createdAt}"></td>
+                <td th:text="${#temporals.format(project.createdAt, 'dd.MM.yyyy HH:mm')}"></td>
                 <td>
                     <a th:href="@{/projects/{id}(id=${project.id})}" class="cta-button">Просмотр</a>
                 </td>

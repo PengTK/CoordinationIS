@@ -59,7 +59,8 @@ public class InitialDataLoader {
             adminRole.setTaskPermission(RolePermission.ALL_PERMS);
             adminRole.setRolePermission(RolePermission.ALL_PERMS);
             adminRole.setUserPermission(RolePermission.ALL_PERMS);
-            
+            adminRole.setChatPermission(RolePermission.ALL_PERMS);
+
             roleService.save(adminRole);
             log.info("✅ Создана роль администратора: ADMIN");
         } else {
@@ -78,6 +79,7 @@ public class InitialDataLoader {
             adminRole.setTaskPermission(RolePermission.NO_PERMS);
             adminRole.setRolePermission(RolePermission.NO_PERMS);
             adminRole.setUserPermission(RolePermission.NO_PERMS);
+            adminRole.setChatPermission(RolePermission.NO_PERMS);
 
             roleService.save(adminRole);
             log.info("✅ Создана роль госля: GUEST");

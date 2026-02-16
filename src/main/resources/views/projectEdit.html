@@ -36,6 +36,16 @@
         </div>
 
         <div class="form-group">
+            <label for="projectStatus">Статус проекта:</label>
+            <select id="projectStatus" name="projectStatus" required>
+                <option value="PENDING" th:selected="${project.projectStatus.name() == 'PENDING'}">Ожидает</option>
+                <option value="IN_PROGRESS" th:selected="${project.projectStatus.name() == 'IN_PROGRESS'}">В работе</option>
+                <option value="COMPLETED" th:selected="${project.projectStatus.name() == 'COMPLETED'}">Завершён</option>
+                <option value="CANCELLED" th:selected="${project.projectStatus.name() == 'CANCELLED'}">Отменён</option>
+            </select>
+        </div>
+
+        <div class="form-group">
             <label>Создатель:</label>
             <p th:text="${project.projectCreator != null ? project.projectCreator.name : 'Пользователь удалён'}"></p>
         </div>

@@ -258,7 +258,7 @@
             <h2 th:text="${project.title}">Название проекта</h2>
 
             <p><strong>Описание:</strong> <span th:text="${project.description}">Описание</span></p>
-            <p><strong>Статус:</strong> <span th:text="${project.projectStatus}">Статус</span></p>
+            <p><strong>Статус:</strong> <span th:text="${project.projectStatus.name}">Статус</span></p>
             <p><strong>Дедлайн:</strong> <span th:text="${project.deadLine} ?: '—'">Дедлайн</span></p>
             <p><strong>Создатель:</strong>
                 <span th:text="${project.projectCreator != null ? project.projectCreator.name : 'Пользователь удалён'}"></span>
