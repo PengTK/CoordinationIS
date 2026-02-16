@@ -23,20 +23,30 @@ jobs:
           chmod +x gradlew
           ./gradlew build -x test --no-daemon
           echo "Тест билда завершён"
-      - name: function_secret
+  lint:
+    name: Test lint build
+    runs-on: ubuntu-24.04
+    steps:
+      - name: lint
         run: |
           echo "Начало теста синтаксиса"
           chmod +x gradlew
           ./gradlew checkstyleMain checkstyleTest
           echo "Конец теста синтаксиса"
-      - name: function_TODO
+  func:
+    name: Test funcs build
+    runs-on: ubuntu-24.04
+    steps:
+      - name: function_secret
         run: |
           chmod +x gradlew
           grep -rE "(password|secret|token|apiKey)" --include="*.java" --include="*.yml" --include="*.properties" src/ config/ 2>/dev/null | grep -v "// " | grep -v "# "
       - name: function_TODO
         run: |
           grep -r "TODO" --include="*.java" --include="*.kt" src/main/ 2>/dev/null
-  
+    
+    
+    
 
 #    validate:
 #
