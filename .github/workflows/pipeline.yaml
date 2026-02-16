@@ -16,11 +16,10 @@ jobs:
         uses: actions/setup-java@v5
         with:
           distribution: 'liberica'
-          java-version: '17'
+          java-version: '21'
       - name: Install libs
         run: |
           echo "Начало теста билда"
-          chmod +x gradlew
           ./gradlew build -x test --no-daemon
           echo "Тест билда завершён"
       - name: function_secret
