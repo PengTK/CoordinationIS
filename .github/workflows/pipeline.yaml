@@ -20,6 +20,7 @@ jobs:
       - name: Install libs
         run: |
           echo "Начало теста билда"
+          chmod +x gradlew
           ./gradlew build -x test --no-daemon
           echo "Тест билда завершён"
       - name: function_secret
