@@ -16,7 +16,7 @@ jobs:
         uses: actions/setup-java@v5
         with:
           distribution: 'liberica'
-          java-version: '17'
+          java-version: '11'
       - name: Install libs
         run: |
           echo "Начало теста билда"
@@ -36,7 +36,7 @@ jobs:
       - name: function_TODO
         run: |
           grep -r "TODO" --include="*.java" --include="*.kt" src/main/ 2>/dev/null
-
+  
 
 #    validate:
 #
