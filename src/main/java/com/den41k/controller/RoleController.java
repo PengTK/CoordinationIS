@@ -36,8 +36,8 @@ public class RoleController {
                 roleData.put("role", role);
                 roleData.put("inUse", roleService.isRoleInUse(role.getId()));
                 roleData.put("userCount", roleService.countUsersWithRole(role.getId()));
-                roleData.put("isProtected", "ADMIN".equals(role.getName())); // Только ADMIN защищен от редактирования
-                roleData.put("isDeleteProtected", "ADMIN".equals(role.getName()) || "GUEST".equals(role.getName())); // ADMIN и GUEST защищены от удаления
+                roleData.put("isProtected", "ADMIN".equals(role.getName()));
+                roleData.put("isDeleteProtected", "ADMIN".equals(role.getName()) || "GUEST".equals(role.getName()));
                 rolesWithUsage.add(roleData);
             }
 
@@ -107,7 +107,6 @@ public class RoleController {
             Role role = roleService.findById(id)
                     .orElseThrow(() -> new RuntimeException("Роль не найдена"));
 
-            // Запрет удаления ролей ADMIN и GUEST
             if ("ADMIN".equals(role.getName()) || "GUEST".equals(role.getName())) {
                 return HttpResponse.badRequest().body("Нельзя удалить системную роль '" + role.getName() + "'");
             }
@@ -139,7 +138,6 @@ public class RoleController {
         Role role = roleService.findById(id)
                 .orElseThrow(() -> new RuntimeException("Роль не найдена"));
 
-        // Запрет доступа к странице редактирования роли ADMIN (GUEST можно редактировать)
         if ("ADMIN".equals(role.getName())) {
             return Map.of("error", "Нельзя редактировать роль 'ADMIN'");
         }

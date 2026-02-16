@@ -26,8 +26,7 @@ public class IndexControllerTest {
     @Test
     void testChatsPageRedirectsForGuest() {
         var response = client.toBlocking().exchange("/chats", String.class);
-        // Например, редирект на /auth
-        assertEquals(HttpStatus.FOUND, response.status()); // 302
+        assertEquals(HttpStatus.FOUND, response.status());
         assertTrue(response.getHeaders().contains("Location"));
     }
 }

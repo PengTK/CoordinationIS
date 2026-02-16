@@ -50,11 +50,9 @@ public class ProjectService {
     }
 
     public List<Project> searchProjects(String search, String status, String creator) {
-        // Получаем все проекты
         List<Project> allProjects = projectRepository.findAll(Sort.of(Sort.Order.desc("createdAt")));
         List<Project> filtered = new ArrayList<>(allProjects);
 
-        // Фильтрация по поиску (название и описание)
         if (search != null && !search.trim().isEmpty()) {
             String searchLower = search.toLowerCase().trim();
             filtered = filtered.stream()
@@ -74,7 +72,6 @@ public class ProjectService {
             }
         }
 
-        // Фильтрация по создателю
         if (creator != null && !creator.trim().isEmpty()) {
             try {
                 Long creatorId = Long.parseLong(creator);
@@ -82,7 +79,6 @@ public class ProjectService {
                         .filter(p -> p.getProjectCreator() != null && p.getProjectCreator().getId().equals(creatorId))
                         .collect(Collectors.toList());
             } catch (NumberFormatException e) {
-                // Неверный ID создателя - возвращаем пустой список
                 return new ArrayList<>();
             }
         }

@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Профиль пользователя</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: #0a0a0a;
+            color: #e0e0e0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.2rem 2rem;
+            background-color: #111;
+            border-bottom: 1px solid #222;
+        }
+
+        .logo {
+            color: white;
+            text-decoration: none;
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        .nav-right a {
+            color: white;
+            text-decoration: none;
+            margin-left: 1.5rem;
+            font-weight: 500;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+
+        h1 {
+            font-size: 2.2rem;
+            margin-bottom: 1.5rem;
+            color: #00f0ff;
+            text-align: left;
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            margin: 2rem 0 1rem;
+            color: #00bfff;
+            text-align: left;
+        }
+
+        .text-muted {
+            color: #777;
+            font-style: italic;
+        }
+
+        .task-item {
+            background-color: #111;
+            border: 1px solid #222;
+            border-radius: 8px;
+            padding: 1.2rem;
+            margin-bottom: 1rem;
+            transition: background-color 0.2s;
+        }
+
+        .task-item:hover {
+            background-color: #1a1a1a;
+        }
+
+        .task-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #e0e0e0;
+            margin-bottom: 0.5rem;
+        }
+
+        .task-meta {
+            color: #aaa;
+            font-size: 0.95rem;
+            margin-bottom: 1rem;
+        }
+
+        .task-meta a {
+            color: #00bfff;
+            text-decoration: none;
+        }
+
+        .task-meta a:hover {
+            color: #00f0ff;
+            text-decoration: underline;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 0.6rem 1.2rem;
+            background: linear-gradient(90deg, #1e1e1e, #2a2a2a);
+            color: #00f0ff;
+            border: 2px solid #00f0ff;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 0.95rem;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .btn:hover {
+            background: linear-gradient(90deg, #2a2a2a, #3a3a3a);
+            color: #fff;
+            border-color: #00bfff;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 175, 255, 0.2);
+        }
+
+        .btn-success {
+            border-color: #00ffaa;
+            color: #00ffaa;
+        }
+
+        .btn-success:hover {
+            border-color: #00cc88;
+            color: #fff;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-top: 2rem;
+            color: #aaa;
+            text-decoration: none;
+        }
+
+        .back-link:hover {
+            color: #00f0ff;
+        }
+    </style>
+</head>
+<body>
+<header>
+    <a href="/home" class="logo">COORDIS</a>
+    <div class="nav-right">
+        <a href="/profile">Профиль</a>
+        <a href="/chats">Чаты</a>
+        <a href="/auth/logout">Выйти</a>
+    </div>
+</header>
+
+<div class="container">
+    <h1>Профиль: <span th:text="${user.name + ' ' + user.sureName}"></span></h1>
+    <p><strong>Email:</strong> <span th:text="${user.email}"></span></p>
+
+    <!-- Назначенные задачи (исполнитель) -->
+    <h2 class="section-title">Мои задачи (исполнитель)</h2>
+    <div th:if="${#lists.isEmpty(assignedTasks)}" class="text-muted">Нет назначенных задач</div>
+    <div class="task-item" th:unless="${#lists.isEmpty(assignedTasks)}" th:each="task : ${assignedTasks}">
+        <div class="task-title" th:text="${task.title}"></div>
+        <div class="task-meta">
+            Проект:
+            <a th:href="@{/projects/{id}(id=${task.project.id})}" th:text="${task.project.title}"></a> |
+            Статус:
+            <span th:text="${#strings.replace(task.taskStatus.toString(), '_', ' ')}"></span> |
+            Дедлайн:
+            <span th:if="${task.deadLine}" th:text="${#temporals.format(task.deadLine, 'dd.MM.yyyy')}"></span>
+            <span th:unless="${task.deadLine}" class="text-muted">не задан</span>
+        </div>
+        <a th:href="@{/projects/{projectId}/task/{taskId}(projectId=${task.project.id}, taskId=${task.id})}"
+           class="btn">Открыть задачу</a>
+    </div>
+
+    <!-- Задачи на утверждении (проверяющий) -->
+    <h2 class="section-title">Задачи на утверждении (проверяющий)</h2>
+    <div th:if="${#lists.isEmpty(reviewingTasks)}" class="text-muted">Нет задач на проверке</div>
+    <div class="task-item" th:unless="${#lists.isEmpty(reviewingTasks)}" th:each="task : ${reviewingTasks}">
+        <div class="task-title" th:text="${task.title}"></div>
+        <div class="task-meta">
+            Проект:
+            <a th:href="@{/projects/{id}(id=${task.project.id})}" th:text="${task.project.title}"></a> |
+            Исполнитель:
+            <span th:if="${task.taskExecutor != null}"
+                  th:text="${task.taskExecutor.name + ' ' + task.taskExecutor.sureName}"></span>
+            <span th:if="${task.taskExecutor == null}" class="text-muted">не назначен</span> |
+            Статус:
+            <span th:text="${#strings.replace(task.taskStatus.toString(), '_', ' ')}"></span>
+        </div>
+        <a th:href="@{/projects/{projectId}/task/{taskId}(projectId=${task.project.id}, taskId=${task.id})}"
+           class="btn btn-success">Утвердить задачу</a>
+    </div>
+
+    <a href="/home" class="back-link">← Назад на главную</a>
+</div>
+</body>
+</html>

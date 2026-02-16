@@ -30,13 +30,11 @@ public class ChatService {
         this.messageRepository = messageRepository;
         this.userService = userService;
     }
-    
-    // Получить все чаты пользователя
+
     public List<Chat> getUserChats(Long userId) {
         return chatRepository.findByUserId(userId);
     }
-    
-    // Создать групповой чат
+
     @Transactional
     public Chat createGroupChat(String name, Long creatorId, List<Long> participantIds) {
         User creator = userService.findById(creatorId).orElseThrow();
@@ -44,12 +42,10 @@ public class ChatService {
         Chat chat = new Chat(ChatType.GROUP, creator);
         chat.setName(name);
         chat = chatRepository.save(chat);
-        
-        // Добавляем создателя как админа
+
         ChatParticipant creatorParticipant = new ChatParticipant(chat, creator, true);
         chatParticipantRepository.save(creatorParticipant);
-        
-        // Добавляем остальных участников
+
         for (Long participantId : participantIds) {
             if (!participantId.equals(creatorId)) {
                 User participant = userService.findById(participantId).orElseThrow();
@@ -60,8 +56,7 @@ public class ChatService {
         
         return chat;
     }
-    
-    // Создать чат проекта
+
     @Transactional
     public Chat createProjectChat(Project project) {
         User creator = project.getProjectCreator();
@@ -70,20 +65,17 @@ public class ChatService {
         chat.setName("Чат проекта: " + project.getTitle());
         chat.setProject(project);
         chat = chatRepository.save(chat);
-        
-        // Добавляем создателя проекта как админа
+
         ChatParticipant creatorParticipant = new ChatParticipant(chat, creator, true);
         chatParticipantRepository.save(creatorParticipant);
         
         return chat;
     }
-    
-    // Получить участников чата
+
     public List<ChatParticipant> getChatParticipants(Long chatId) {
         return chatParticipantRepository.findByChatId(chatId);
     }
-    
-    // Пометить сообщения как прочитанные
+
     @Transactional
     public void markMessagesAsRead(Long chatId, Long userId) {
         Optional<ChatParticipant> participant = chatParticipantRepository.findByChatIdAndUserId(chatId, userId);
@@ -92,8 +84,7 @@ public class ChatService {
             chatParticipantRepository.update(p);
         });
     }
-    
-    // Получить количество непрочитанных сообщений
+
     public long getUnreadMessagesCount(Long chatId, Long userId) {
         Optional<ChatParticipant> participant = chatParticipantRepository.findByChatIdAndUserId(chatId, userId);
         if (participant.isEmpty()) {
@@ -107,8 +98,7 @@ public class ChatService {
         
         return chatRepository.countUnreadMessages(chatId, lastRead);
     }
-    
-    // Получить все непрочитанные сообщения пользователя
+
     public long getTotalUnreadMessages(Long userId) {
         List<Chat> chats = getUserChats(userId);
         return chats.stream()
@@ -125,7 +115,6 @@ public class ChatService {
     public List<MessageDto> getChatMessages(Long chatId, int limit) {
         List<Message> messages = messageRepository.findAllByChatId(chatId);
 
-        // Берём последние N сообщений, но сохраняем хронологический порядок
         int fromIndex = Math.max(0, messages.size() - limit);
         List<Message> lastMessages = messages.subList(fromIndex, messages.size());
 
@@ -170,28 +159,23 @@ public class ChatService {
     }
 
     public boolean canSendMessage(User user, Chat chat) {
-        // Проверяем базовый доступ к чатам
         if (!canAccessChats(user)) {
             return false;
         }
 
-        // Проверяем, что пользователь является участником чата
         return chat.getParticipants().stream()
                 .anyMatch(p -> p.getUser().getId().equals(user.getId()));
     }
 
-    // Обновленный метод создания личного чата
     @Transactional
     public Chat createPrivateChat(Long userId1, Long userId2) {
         User user1 = userService.findById(userId1).orElseThrow();
         User user2 = userService.findById(userId2).orElseThrow();
 
-        // Проверяем права на создание чатов
         if (!canCreateChats(user1)) {
             throw new RuntimeException("У вас нет прав на создание чатов");
         }
 
-        // Проверяем, существует ли уже чат между этими пользователями
         Optional<Chat> existingChat = chatRepository.findPrivateChatBetween(userId1, userId2);
         if (existingChat.isPresent()) {
             return existingChat.get();
@@ -209,7 +193,6 @@ public class ChatService {
         return chat;
     }
 
-    // Обновленный метод отправки сообщения
     @Transactional
     public Message sendMessage(Long chatId, Long authorId, String content) {
         Chat chat = chatRepository.findById(chatId)
@@ -218,7 +201,6 @@ public class ChatService {
         User author = userService.findById(authorId)
                 .orElseThrow(() -> new RuntimeException("Пользователь не найден"));
 
-        // Проверяем права на отправку сообщений
         if (!canSendMessage(author, chat)) {
             throw new RuntimeException("У вас нет прав на отправку сообщений в этот чат");
         }

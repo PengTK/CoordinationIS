@@ -15,7 +15,6 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
     @Query("SELECT m FROM Message m WHERE m.chat.id = :chatId AND m.createdAt > :since ORDER BY m.createdAt ASC")
     List<Message> findMessagesSince(@Parameter("chatId") Long chatId, @Parameter("since") LocalDateTime since);
 
-    // Для загрузки всех сообщений чата
     @Query("SELECT m FROM Message m WHERE m.chat.id = :chatId ORDER BY m.createdAt ASC")
     List<Message> findAllByChatId(@Parameter("chatId") Long chatId);
 

@@ -33,8 +33,8 @@ public class CalendarService {
         List<DayInfo> days = generateDays(currentMonth, project, tasks);
         calendarData.put("days", days);
 
-        calendarData.put("prevMonth", currentMonth.minusMonths(1).toString());  // "2026-01"
-        calendarData.put("nextMonth", currentMonth.plusMonths(1).toString());   // "2026-03"
+        calendarData.put("prevMonth", currentMonth.minusMonths(1).toString());
+        calendarData.put("nextMonth", currentMonth.plusMonths(1).toString());
 
         return calendarData;
     }
@@ -52,7 +52,7 @@ public class CalendarService {
         int daysInMonth = month.lengthOfMonth();
         LocalDate firstDay = month.atDay(1);
 
-        int dayOfWeek = firstDay.getDayOfWeek().getValue(); //
+        int dayOfWeek = firstDay.getDayOfWeek().getValue();
         for (int i = dayOfWeek - 1; i > 0; i--) {
             LocalDate prevMonthDay = firstDay.minusDays(i);
             days.add(new DayInfo(prevMonthDay, false, null, 0));

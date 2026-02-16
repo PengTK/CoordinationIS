@@ -104,11 +104,9 @@ public class TaskController {
                 Long executorId = Long.parseLong(executorIdStr);
                 executor = userService.findById(executorId).orElse(null);
             } catch (NumberFormatException e) {
-                // Игнорируем ошибку
             }
         }
 
-        // НОВОЕ: Парсинг утверждающего
         User approver = null;
         String approverIdStr = formData.get("approverId");
         if (approverIdStr != null && !approverIdStr.isEmpty()) {
@@ -116,7 +114,6 @@ public class TaskController {
                 Long approverId = Long.parseLong(approverIdStr);
                 approver = userService.findById(approverId).orElse(null);
             } catch (NumberFormatException e) {
-                // Игнорируем ошибку
             }
         }
 
@@ -138,11 +135,10 @@ public class TaskController {
 
     @Get("/{taskId}")
     @View("taskDetails")
-    @Transactional(readOnly = true)  // ← Ключевое улучшение: транзакция для ленивой загрузки
+    @Transactional(readOnly = true)
     public Map<String, Object> getTaskDetails(Long projectId, Long taskId, Session session) {
         Map<String, Object> model = new HashMap<>();
 
-        // 1. Проверка авторизации
         String email = session.get("email", String.class).orElse(null);
         if (email == null) {
             model.put("redirect", "/auth");
@@ -150,7 +146,6 @@ public class TaskController {
             return model;
         }
 
-        // 2. Загрузка проекта с создателем (чтобы избежать LazyInitializationException)
         Optional<Project> projectOpt = projectService.findById(projectId);
         if (projectOpt.isEmpty()) {
             model.put("redirect", "/projects");
@@ -159,7 +154,6 @@ public class TaskController {
         }
         Project project = projectOpt.get();
 
-        // 3. Загрузка задачи со всеми связями
         Optional<Task> taskOpt = taskService.findById(taskId);
         if (taskOpt.isEmpty() || !taskOpt.get().getProject().getId().equals(projectId)) {
             model.put("redirect", "/projects/" + projectId);
@@ -168,17 +162,13 @@ public class TaskController {
         }
         Task task = taskOpt.get();
 
-        // 4. Загрузка всех задач проекта для навигации
         List<Task> tasks = taskService.findByProjectId(projectId);
 
-        // 5. Загрузка всех пользователей для выпадающих списков
         List<User> allUsers = userService.getAllUsers();
 
-        // 6. Загрузка комментариев с авторами
         List<Comment> comments = commentService.getCommentsByTaskId(taskId);
         long commentCount = comments.size();
 
-        // 7. Проверка прав на редактирование
         Optional<User> currentUserOpt = userService.findByEmail(email);
         if (currentUserOpt.isEmpty()) {
             model.put("redirect", "/auth");
@@ -190,7 +180,6 @@ public class TaskController {
         boolean canEdit = currentUser.getRole().getName().equals("ADMIN") ||
                 currentUser.getId().equals(task.getTaskCreator().getId());
 
-        // 8. Формирование модели
         model.put("email", email);
         model.put("project", project);
         model.put("task", task);

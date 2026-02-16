@@ -51,7 +51,6 @@ public class ChatController {
 
         User user = currentUser.get();
 
-        // Проверяем права доступа к чатам
         if (!chatService.canAccessChats(user)) {
             model.put("error", "У вас нет доступа к чатам");
             return model;
@@ -65,7 +64,6 @@ public class ChatController {
         }
 
         List<User> allUsers = new ArrayList<>();
-        // Только пользователи с правами на чаты могут создавать чаты
         if (chatService.canCreateChats(user)) {
             allUsers = userService.findAll();
         }
@@ -89,16 +87,15 @@ public class ChatController {
             return HttpResponse.unauthorized();
         }
 
-        Optional<User> currentUser = userService.findByEmail(email); // ИСПРАВЛЕНО
+        Optional<User> currentUser = userService.findByEmail(email);
         if (currentUser.isEmpty()) {
             return HttpResponse.badRequest();
         }
 
         User user = currentUser.get();
 
-        // Проверяем права на создание чатов
         if (!chatService.canCreateChats(user)) {
-            return HttpResponse.status(HttpStatus.FORBIDDEN, "У вас нет прав на создание чатов"); // ИСПРАВЛЕНО
+            return HttpResponse.status(HttpStatus.FORBIDDEN, "У вас нет прав на создание чатов");
         }
 
         Long userId1 = user.getId();
@@ -110,7 +107,6 @@ public class ChatController {
             return HttpResponse.badRequest();
         }
 
-        // Проверяем, что пользователь не создаёт чат с самим собой
         if (userId1.equals(userId2)) {
             return HttpResponse.badRequest();
         }
@@ -119,8 +115,7 @@ public class ChatController {
 
         return HttpResponse.redirect(URI.create("/chats/" + chat.getId()));
     }
-    
-    // Создать групповой чат
+
     @Post(value = "/group", consumes = MediaType.APPLICATION_FORM_URLENCODED)
     public HttpResponse<?> createGroupChat(@Body Map<String, Object> body, Session session) {
         String email = session.get("email", String.class).orElse(null);
@@ -143,16 +138,14 @@ public class ChatController {
         List<Long> participantIds = participantIdsStr.stream()
                 .map(Long::parseLong)
                 .collect(Collectors.toList());
-        
-        // Добавляем текущего пользователя
+
         participantIds.add(currentUser.get().getId());
         
         Chat chat = chatService.createGroupChat(name, currentUser.get().getId(), participantIds);
         
         return HttpResponse.redirect(URI.create("/chats/" + chat.getId()));
     }
-    
-    // Создать чат проекта
+
     @Post(value = "/project/{projectId}", consumes = MediaType.APPLICATION_FORM_URLENCODED)
     public HttpResponse<?> createProjectChat(Long projectId, Session session) {
         String email = session.get("email", String.class).orElse(null);
@@ -167,7 +160,6 @@ public class ChatController {
         
         Project project = projectOpt.get();
         
-        // Создаём чат проекта
         Chat chat = chatService.createProjectChat(project);
         
         return HttpResponse.redirect(URI.create("/chats/" + chat.getId()));
@@ -192,7 +184,6 @@ public class ChatController {
 
         User user = currentUser.get();
 
-        // Проверяем права доступа к чатам
         if (!chatService.canAccessChats(user)) {
             model.put("error", "У вас нет доступа к чатам");
             return model;
@@ -206,7 +197,6 @@ public class ChatController {
 
         Chat chat = chatOpt.get();
 
-        // Проверяем, что пользователь является участником чата
         boolean isParticipant = chat.getParticipants().stream()
                 .anyMatch(p -> p.getUser().getId().equals(user.getId()));
 
@@ -215,20 +205,16 @@ public class ChatController {
             return model;
         }
 
-        // Получаем последние 50 сообщений (используем DTO)
         List<MessageDto> messages = chatService.getChatMessages(chatId, 50);
-        Collections.reverse(messages); // Старые сообщения сверху
-
-        // Получаем участников чата
+        Collections.reverse(messages);
         List<ChatParticipant> participants = chatService.getChatParticipants(chatId);
 
-        // Помечаем сообщения как прочитанные
         chatService.markMessagesAsRead(chatId, user.getId());
 
         model.put("email", email);
         model.put("currentUser", user);
-        model.put("chat", chat);          // Оригинальный объект Chat
-        model.put("messages", messages);  // Список MessageDto
+        model.put("chat", chat);
+        model.put("messages", messages);
         model.put("participants", participants);
         model.put("canSendMessage", chatService.canSendMessage(user, chat));
 
@@ -237,7 +223,6 @@ public class ChatController {
 
     @Get("/{chatId}/messages/since")
     public List<MessageDto> getNewMessages(@PathVariable Long chatId, @QueryValue("since") String sinceStr, Session session) {
-        // Проверка сессии
         String email = session.get("email", String.class).orElse(null);
         if (email == null) {
             return Collections.emptyList();
@@ -274,7 +259,6 @@ public class ChatController {
 
         User user = currentUser.get();
 
-        // Проверяем права на отправку сообщений
         Optional<Chat> chatOpt = chatService.findById(chatId);
         if (chatOpt.isEmpty()) {
             return HttpResponse.badRequest("Чат не найден");
@@ -294,5 +278,32 @@ public class ChatController {
         } catch (Exception e) {
             return HttpResponse.badRequest("Ошибка: " + e.getMessage());
         }
+    }
+
+    @Get("/{chatId}/api")
+    @Status(HttpStatus.OK)
+    public List<MessageDto> getAllMessages(@PathVariable Long chatId, Session session) {
+        String email = session.get("email", String.class).orElse(null);
+        if (email == null) {
+            throw new RuntimeException("Unauthorized");
+        }
+
+        Optional<User> currentUser = userService.findByEmail(email);
+        if (currentUser.isEmpty()) {
+            throw new RuntimeException("User not found");
+        }
+
+        Optional<Chat> chatOpt = chatService.findById(chatId);
+        if (chatOpt.isEmpty()) {
+            throw new RuntimeException("Chat not found");
+        }
+
+        boolean isParticipant = chatOpt.get().getParticipants().stream()
+                .anyMatch(p -> p.getUser().getId().equals(currentUser.get().getId()));
+        if (!isParticipant) {
+            throw new RuntimeException("Access denied: you are not a participant of this chat");
+        }
+
+        return chatService.getChatMessages(chatId, Integer.MAX_VALUE);
     }
 }

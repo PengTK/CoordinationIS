@@ -9,9 +9,8 @@
 <header th:fragment="header(email, firstName, role, totalUnread)">
     <a href="/home" class="logo">COORDIS</a>
 
-    <!-- Для авторизованных -->
     <div th:if="${email != null}" class="auth-buttons nav-right">
-        <!-- Кнопка чатов с непрочитанными -->
+        <a href="/profile">Личный кабинет</a>
         <a href="/chats" style="position: relative; margin-right: 1.5rem; color: #00bfff; text-decoration: none;">
             💬 Чаты
             <span th:if="${totalUnread != null && totalUnread > 0}"
@@ -25,7 +24,6 @@
         </form>
     </div>
 
-    <!-- Для гостей -->
     <div th:unless="${email != null}" class="auth-buttons">
         <a href="/auth">Вход</a> | <a href="/reg">Регистрация</a>
     </div>

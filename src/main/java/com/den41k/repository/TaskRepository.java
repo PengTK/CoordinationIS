@@ -42,4 +42,6 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
 
     @Query("SELECT t FROM Task t WHERE t.approver.id = :userId")
     List<Task> findByApproverId(Long userId);
+
+    List<Task> findByTaskExecutorId(Long executorId);
 }

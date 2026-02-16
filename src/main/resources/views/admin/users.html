@@ -6,13 +6,7 @@
         <link rel="stylesheet" th:href="@{/static/css/style.css}">
     </head>
     <body>
-    <header>
-        <a href="/home" class="logo">COORDIS</a>
-        <div th:if="${email != null}" class="auth-buttons nav-right">
-            <a href="/admin/roles">Роли</a> |
-            <a href="/projects">Проекты</a>
-        </div>
-    </header>
+    <div th:replace="~{fragments/header :: header(${email}, ${firstName}, ${role}, ${totalUnread})}"></div>
 
     <main style="text-align: left; max-width: 1000px; margin: 2rem auto;">
         <h2>Пользователи системы</h2>

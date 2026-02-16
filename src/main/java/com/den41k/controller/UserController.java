@@ -42,7 +42,7 @@ public class UserController {
                           RoleService roleService,
                           ProjectService projectService,
                           TaskService taskService,
-                          CommentService commentService) {  // ← добавили в конструктор
+                          CommentService commentService) {
         this.userService = userService;
         this.roleService = roleService;
         this.projectService = projectService;

@@ -124,4 +124,12 @@ public class TaskService {
     public List<Task> findByApproverId(Long userId) {
         return taskRepository.findByApproverId(userId);
     }
+
+    public List<Task> findTasksByExecutorId(Long executorId) {
+        return taskRepository.findByTaskExecutorId(executorId);
+    }
+
+    public List<Task> findTasksByApproverId(Long approverId) {
+        return taskRepository.findByApproverId(approverId);
+    }
 }

@@ -46,13 +46,8 @@
     </style>
 </head>
 <body>
-<header>
-    <a href="/home" class="logo">COORDIS</a>
-    <div th:if="${email != null}" class="auth-buttons nav-right">
-        <a href="/admin/users">Пользователи</a> |
-        <a href="/projects">Проекты</a>
-    </div>
-</header>
+<div th:replace="~{fragments/header :: header(${email}, ${firstName}, ${role}, ${totalUnread})}"></div>
+
 
 <main style="text-align: left; max-width: 1400px; margin: 2rem auto; padding: 0 1rem;">
 

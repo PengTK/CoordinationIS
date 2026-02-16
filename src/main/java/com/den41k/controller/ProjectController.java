@@ -46,10 +46,8 @@ public class ProjectController {
                 String firstName = currentUser.get().getName();
                 Role role = currentUser.get().getRole();
 
-                // Фильтрация и поиск проектов
                 List<Project> projects = projectService.searchProjects(search, status, creatorId);
 
-                // Получаем всех создателей для фильтра
                 List<User> allCreators = projectService.getAllProjectCreators();
 
                 model.put("email", email);
@@ -59,7 +57,7 @@ public class ProjectController {
                 model.put("allCreators", allCreators);
                 model.put("search", search);
                 model.put("status", status);
-                model.put("creatorId", creatorId); // Передаём как creatorId
+                model.put("creatorId", creatorId);
             }
         }
         return model;
@@ -246,7 +244,6 @@ public class ProjectController {
                 project.setDeadLine(LocalDate.parse(deadLineStr));
             }
 
-            // Установка статуса проекта
             if (projectStatusStr != null && !projectStatusStr.trim().isEmpty()) {
                 try {
                     ProjectStatus status = ProjectStatus.valueOf(projectStatusStr);

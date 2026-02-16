@@ -21,11 +21,11 @@ public class Chat {
     @Enumerated(EnumType.STRING)
     private ChatType type;
 
-    private String name;  // Для групповых и проектных чатов
+    private String name;
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "project_id")
-    private Project project;  // Для проектных чатов
+    private Project project;
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "creator_id", nullable = false)
@@ -41,7 +41,6 @@ public class Chat {
     @OneToMany(mappedBy = "chat", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     private List<Message> messages = new ArrayList<>();
 
-    // Constructors
     public Chat() {}
 
     public Chat(ChatType type, User creator) {
@@ -51,7 +50,6 @@ public class Chat {
         this.updatedAt = LocalDateTime.now();
     }
 
-    // Getters and Setters
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 

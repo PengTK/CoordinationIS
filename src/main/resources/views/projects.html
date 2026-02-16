@@ -49,13 +49,8 @@
 </head>
 <body>
 
-<header>
-    <a href="/home" class="logo">COORDIS</a>
-    <div th:if="${email == null}" class="auth-buttons">
-        <a href="auth">Вход</a> |
-        <a href="reg">Регистрация</a>
-    </div>
-</header>
+<div th:replace="~{fragments/header :: header(${email}, ${firstName}, ${role}, ${totalUnread})}"></div>
+
 <main>
     <div th:if="${email != null}">
         <a href="projects/create" class="cta-button">Создать проект</a>
