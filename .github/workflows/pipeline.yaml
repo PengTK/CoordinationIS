@@ -26,7 +26,16 @@ jobs:
   lint:
     name: Test lint build
     runs-on: ubuntu-24.04
+    needs: test
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Set up Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: 'liberica'
+          java-version: '21'
       - name: lint
         run: |
           echo "Начало теста синтаксиса"
@@ -36,7 +45,16 @@ jobs:
   func:
     name: Test funcs build
     runs-on: ubuntu-24.04
+    needs: test
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Set up Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: 'liberica'
+          java-version: '21'
       - name: function_secret
         run: |
           chmod +x gradlew
