@@ -38,6 +38,9 @@ dependencies {
     implementation("org.mindrot:jbcrypt:0.4")
 
     implementation("io.micronaut.session:micronaut-session")
+
+    implementation("org.apache.poi:poi:5.2.4")
+    implementation("org.apache.poi:poi-ooxml:5.2.4")
 }
 
 
