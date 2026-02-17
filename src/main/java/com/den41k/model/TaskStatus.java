@@ -15,4 +15,13 @@ public enum TaskStatus {
     public String getName() {
         return name;
     }
+
+    public String getLabel() {
+        return switch (this) {
+            case TODO -> "К выполнению";
+            case IN_PROGRESS -> "В работе";
+            case REVIEW -> "На проверке";
+            case DONE -> "Завершено";
+        };
+    }
 }

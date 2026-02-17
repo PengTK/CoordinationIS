@@ -132,4 +132,8 @@ public class TaskService {
     public List<Task> findTasksByApproverId(Long approverId) {
         return taskRepository.findByApproverId(approverId);
     }
+
+    public List<Task> findTasksByProjectId(Long projectId) {
+        return taskRepository.findByProjectId(projectId);
+    }
 }

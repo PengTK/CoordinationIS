@@ -129,6 +129,7 @@
                 <td th:text="${#temporals.format(project.createdAt, 'dd.MM.yyyy HH:mm')}"></td>
                 <td>
                     <a th:href="@{/projects/{id}(id=${project.id})}" class="cta-button">Просмотр</a>
+                    <a th:href="@{/projects/{id}/export-excel(id=${project.id})}" class="cta-button">Экспорт</a>
                 </td>
             </tr>
             </tbody>
